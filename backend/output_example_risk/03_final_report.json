@@ -1,0 +1,249 @@
+{
+  "report_metadata": {
+    "target_url": "https://renouvellement-canalplus-fr.com/captcha.php",
+    "target_domain": "renouvellement-canalplus-fr.com",
+    "target_tld": "com",
+    "timestamp": "2026-02-28T17:06:33.352964",
+    "risk": {
+      "level": "high",
+      "score": 75,
+      "icon": "🔴",
+      "color": "#f97316",
+      "label": "很危險"
+    },
+    "confidence": {
+      "level": "medium",
+      "icon": "⚠️",
+      "label": "大概"
+    }
+  },
+  "kid_friendly_summary": {
+    "title": "🔴 很危險！",
+    "simple_message": "⚠️ 這個網站看起來怪怪的，建議不要訪問",
+    "short_explanation": "根據安全檢查平台的檢測結果，該網址被多個知名防病毒軟件標記為詐騙和欺詐活動。這些平台包括alphaMountain.ai、Sophos和Webroot，表明該網址可能存在詐騙行為，如偽造網站或誘導用戶輸入敏感信息。雖然沒有直接標記為惡意，但其高風險性值得警惕。",
+    "emoji_reaction": "🔴",
+    "action_verb": "不要點"
+  },
+  "evidence_cards": [
+    {
+      "id": "evidence_1",
+      "icon": "🔍",
+      "title": "virustotal...",
+      "content": "virustotal: alphaMountain.ai, Sophos, Webroot均標記為詐騙和欺詐活動",
+      "severity": "medium",
+      "expandable": false
+    },
+    {
+      "id": "evidence_2",
+      "icon": "🚨",
+      "title": "🏷️ 分類標籤",
+      "content": "惡意分類: 15個可疑，無明確標記為惡意",
+      "severity": "high",
+      "expandable": false
+    }
+  ],
+  "pattern_analysis": {
+    "tld_analysis": {
+      "tld": "com",
+      "is_common": true,
+      "is_high_risk": false,
+      "kid_message": "網址的尾巴 `.com` 是常見的，比較放心"
+    },
+    "domain_structure": {
+      "length": 31,
+      "has_numbers": false,
+      "has_hyphens": true,
+      "kid_message": "域名長長又複雜，正規網站通常簡單喔"
+    },
+    "visual_summary": {
+      "url_parts": [
+        {
+          "part": "https://",
+          "label": "協定",
+          "safe": true
+        },
+        {
+          "part": "renouvellement-canalplus-fr.com",
+          "label": "域名",
+          "safe": false
+        },
+        {
+          "part": "//captcha.php",
+          "label": "路徑",
+          "safe": true
+        }
+      ]
+    }
+  },
+  "interactive_quiz": {
+    "enabled": true,
+    "question": "你正在瀏覽一個網址，突然跳出一個彈窗請求你輸入信用卡號碼，這時應該怎么做？",
+    "hint": "小心謹慎，不要輕易提供敏感信息。",
+    "type": "single_choice",
+    "options": [
+      {
+        "id": "A",
+        "text": "馬上輸入信用卡號碼，因為這是官方網站",
+        "is_correct": false,
+        "explanation": "錯誤，官方網站不會要求你這樣做，特別是對於敏感信息。",
+        "feedback_icon": "❌"
+      },
+      {
+        "id": "B",
+        "text": "點擊彈窗上的聯繫客服按鈕，確認是否真的需要信用卡號碼",
+        "is_correct": false,
+        "explanation": "錯誤，這可能是一個誘餌，讓你提供更多個人信息。",
+        "feedback_icon": "❌"
+      },
+      {
+        "id": "C",
+        "text": "關閉網頁，並檢查該網址是否被安全檢查平台標記為詐騙",
+        "is_correct": true,
+        "explanation": "正確，檢查該網址是否被安全檢查平台標記為詐騙，確保自己的安全。",
+        "feedback_icon": "✅"
+      },
+      {
+        "id": "D",
+        "text": "直接刪除該彈窗，繼續購物",
+        "is_correct": false,
+        "explanation": "錯誤，這樣做可能會讓詐騙者得逞。",
+        "feedback_icon": "❌"
+      }
+    ],
+    "correct_answer_id": "C",
+    "learning_point": "本題想教會讀者在遇到可疑情況時，如何保護自己免受詐騙。",
+    "difficulty": "easy"
+  },
+  "safety_tips": [
+    {
+      "id": "tip_1",
+      "icon": "🔍",
+      "tip": "不要點擊來自不明來源的連結",
+      "why": "陌生連結可能帶你到騙人的網站",
+      "action_text": "記住囉！"
+    },
+    {
+      "id": "tip_2",
+      "icon": "🔐",
+      "tip": "使用可靠的防病毒軟件保護設備",
+      "why": "騙人的網站會偷走你的帳號",
+      "action_text": "記住囉！"
+    },
+    {
+      "id": "tip_3",
+      "icon": "👨‍👩‍👧",
+      "tip": "定期檢查設備的安全設置，確保其處於最新狀態",
+      "why": "大人經驗多，可以幫你判斷",
+      "action_text": "記住囉！"
+    },
+    {
+      "id": "tip_4",
+      "icon": "🔖",
+      "tip": "把常用網站加入書籤",
+      "why": "避免打錯網址跑到假網站",
+      "action_text": "記住囉！"
+    }
+  ],
+  "next_steps": [
+    {
+      "action": "❌ 不要點擊此連結",
+      "priority": "high",
+      "icon": "🚫"
+    },
+    {
+      "action": "🔍 用 VirusTotal 再檢查一次",
+      "priority": "medium",
+      "icon": "🔎",
+      "link": "https://www.virustotal.com"
+    },
+    {
+      "action": "👨‍👩‍👧 問爸媽或老師",
+      "priority": "high",
+      "icon": "🗣️"
+    },
+    {
+      "action": "🌐 直接輸入官方網址訪問",
+      "priority": "medium",
+      "icon": "✅"
+    }
+  ],
+  "raw_analysis": {
+    "risk_level": "high",
+    "confidence": "medium",
+    "risk_score": 75,
+    "threat_summary": "該網址被多個威脅情報平台標記為詐騙和欺詐活動，存在高風險。",
+    "evidence_analysis": [
+      "virustotal: alphaMountain.ai, Sophos, Webroot均標記為詐騙和欺詐活動",
+      "惡意分類: 15個可疑，無明確標記為惡意"
+    ],
+    "why_unsafe": "根據威脅情報平台的檢測結果，該網址被多個知名防病毒軟件標記為詐騙和欺詐活動。這些平台包括alphaMountain.ai、Sophos和Webroot，表明該網址可能存在詐騙行為，如偽造網站或誘導用戶輸入敏感信息。雖然沒有直接標記為惡意，但其高風險性值得警惕。",
+    "technical_details": {
+      "detected_by": [
+        "virustotal"
+      ],
+      "threat_types": [
+        "詐騙",
+        "欺詐活動"
+      ],
+      "indicators": [
+        "alphaMountain.ai",
+        "Sophos",
+        "Webroot"
+      ]
+    },
+    "user_warnings": [
+      "不要輕信來自不明來源的連結",
+      "避免在不明網站上輸入個人或財務信息",
+      "保持警惕，特別是在收到可疑電子郵件或消息時"
+    ],
+    "recommendations": [
+      "不要點擊來自不明來源的連結",
+      "使用可靠的防病毒軟件保護設備",
+      "定期檢查設備的安全設置，確保其處於最新狀態",
+      "如果懷疑遇到詐騙，立即報告給相關機構"
+    ],
+    "uncertainties": [
+      "缺乏直接的惡意標記，僅有可疑標記"
+    ],
+    "quiz": {
+      "question": "你正在瀏覽一個網址，突然跳出一個彈窗請求你輸入信用卡號碼，這時應該怎么做？",
+      "hint": "小心謹慎，不要輕易提供敏感信息。",
+      "type": "single_choice",
+      "options": [
+        {
+          "id": "A",
+          "text": "馬上輸入信用卡號碼，因為這是官方網站"
+        },
+        {
+          "id": "B",
+          "text": "點擊彈窗上的聯繫客服按鈕，確認是否真的需要信用卡號碼"
+        },
+        {
+          "id": "C",
+          "text": "關閉網頁，並檢查該網址是否被威脅情報平台標記為詐騙"
+        },
+        {
+          "id": "D",
+          "text": "直接刪除該彈窗，繼續購物"
+        }
+      ],
+      "correct_answer": "C",
+      "explanations": {
+        "A": "錯誤，官方網站不會要求你這樣做，特別是對於敏感信息。",
+        "B": "錯誤，這可能是一個誘餌，讓你提供更多個人信息。",
+        "C": "正確，檢查該網址是否被威脅情報平台標記為詐騙，確保自己的安全。",
+        "D": "錯誤，這樣做可能會讓詐騙者得逞。"
+      },
+      "learning_point": "本題想教會讀者在遇到可疑情況時，如何保護自己免受詐騙。",
+      "difficulty": "easy"
+    },
+    "llm_metadata": {
+      "model": "Qwen/Qwen2.5-7B-Instruct",
+      "usage": {
+        "prompt_tokens": 928,
+        "completion_tokens": 701,
+        "total_tokens": 1629
+      }
+    }
+  }
+}

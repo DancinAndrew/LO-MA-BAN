@@ -1,0 +1,205 @@
+{
+  "report_metadata": {
+    "target_url": "https://www.google.com/maps",
+    "target_domain": "www.google.com",
+    "target_tld": "com",
+    "timestamp": "2026-02-28T17:14:37.937696",
+    "risk": {
+      "level": "low",
+      "score": 0,
+      "icon": "🟡",
+      "color": "#eab308",
+      "label": "相對安全"
+    },
+    "confidence": {
+      "level": "high",
+      "icon": "✅",
+      "label": "很確定"
+    }
+  },
+  "kid_friendly_summary": {
+    "title": "🟡 相對安全！",
+    "simple_message": "🙂 這個網站看起來還好，但上網還是要保持警覺喔",
+    "short_explanation": "根據安全檢查平台的檢測結果，該網址未被任何安全工具標記為威脅。BitDefender, Sophos 和 Forcepoint ThreatSeeker 等知名安全平台均未報告該網址存在任何問題。因此，該網址目前看起來是安全的。",
+    "emoji_reaction": "🟡",
+    "action_verb": "小心點"
+  },
+  "evidence_cards": [
+    {
+      "id": "evidence_1",
+      "icon": "🔍",
+      "title": "BitDefende...",
+      "content": "BitDefender",
+      "severity": "medium",
+      "expandable": false
+    },
+    {
+      "id": "evidence_2",
+      "icon": "🔍",
+      "title": "Sophos",
+      "content": "Sophos",
+      "severity": "medium",
+      "expandable": false
+    },
+    {
+      "id": "evidence_3",
+      "icon": "🚨",
+      "title": "Forcepoint...",
+      "content": "Forcepoint ThreatSeeker",
+      "severity": "high",
+      "expandable": false
+    }
+  ],
+  "pattern_analysis": {
+    "tld_analysis": {
+      "tld": "com",
+      "is_common": true,
+      "is_high_risk": false,
+      "kid_message": "網址的尾巴 `.com` 是常見的，比較放心"
+    },
+    "domain_structure": {
+      "length": 14,
+      "has_numbers": false,
+      "has_hyphens": false,
+      "kid_message": "域名簡單好記，"
+    },
+    "visual_summary": {
+      "url_parts": [
+        {
+          "part": "https://",
+          "label": "協定",
+          "safe": true
+        },
+        {
+          "part": "www.google.com",
+          "label": "域名",
+          "safe": true
+        },
+        {
+          "part": "//maps",
+          "label": "路徑",
+          "safe": true
+        }
+      ]
+    }
+  },
+  "interactive_quiz": {
+    "enabled": true,
+    "question": "🤔 如果你收到一個陌生連結，第一步應該做什麼？",
+    "hint": "記住口訣：停、看、聽！",
+    "type": "single_choice",
+    "options": [
+      {
+        "id": "A",
+        "text": "馬上點進去看看是什麼",
+        "is_correct": false,
+        "explanation": "直接點進去可能會中病毒、被騙個資，千萬不要！",
+        "feedback_icon": "❌"
+      },
+      {
+        "id": "B",
+        "text": "先複製網址，用安全工具檢查一下",
+        "is_correct": true,
+        "explanation": "答對啦！先用安全工具檢查，是最保險的做法！",
+        "feedback_icon": "✅"
+      },
+      {
+        "id": "C",
+        "text": "直接刪除，不管它",
+        "is_correct": false,
+        "explanation": "刪除是安全的，但如果這是重要通知，可能會錯過重要資訊",
+        "feedback_icon": "❌"
+      },
+      {
+        "id": "D",
+        "text": "轉發給朋友一起看",
+        "is_correct": false,
+        "explanation": "轉發可能讓更多人遇到危險，要先確認安全再分享",
+        "feedback_icon": "❌"
+      }
+    ],
+    "correct_answer_id": "B",
+    "learning_point": "安全口訣：「陌生連結不亂點，先查再按最安全」🔐",
+    "difficulty": "easy"
+  },
+  "safety_tips": [
+    {
+      "id": "tip_1",
+      "icon": "🔍",
+      "tip": "不隨便點陌生連結",
+      "why": "陌生連結可能帶你到騙人的網站",
+      "action_text": "記住囉！"
+    },
+    {
+      "id": "tip_2",
+      "icon": "🔐",
+      "tip": "不在不明網站輸入密碼",
+      "why": "騙人的網站會偷走你的帳號",
+      "action_text": "記住囉！"
+    },
+    {
+      "id": "tip_3",
+      "icon": "👨‍👩‍👧",
+      "tip": "有疑問時問爸媽或老師",
+      "why": "大人經驗多，可以幫你判斷",
+      "action_text": "記住囉！"
+    },
+    {
+      "id": "tip_4",
+      "icon": "🔖",
+      "tip": "把常用網站加入書籤",
+      "why": "避免打錯網址跑到假網站",
+      "action_text": "記住囉！"
+    }
+  ],
+  "next_steps": [
+    {
+      "action": "🔍 保持警覺，仔細看網址",
+      "priority": "medium",
+      "icon": "👀"
+    },
+    {
+      "action": "🔐 不要在不明網站輸入個資",
+      "priority": "high",
+      "icon": "🔒"
+    },
+    {
+      "action": "📚 學習更多網路安全知識",
+      "priority": "low",
+      "icon": "🎓",
+      "link": "https://phishingquiz.withgoogle.com"
+    }
+  ],
+  "raw_analysis": {
+    "risk_level": "low",
+    "confidence": "high",
+    "risk_score": 0,
+    "threat_summary": "該網址未發現任何威脅活動。",
+    "evidence_analysis": [
+      "BitDefender",
+      "Sophos",
+      "Forcepoint ThreatSeeker"
+    ],
+    "why_unsafe": "根據威脅情報平台的檢測結果，該網址未被任何安全工具標記為威脅。BitDefender, Sophos 和 Forcepoint ThreatSeeker 等知名安全平台均未報告該網址存在任何問題。因此，該網址目前看起來是安全的。",
+    "technical_details": {
+      "detected_by": [
+        "BitDefender",
+        "Sophos",
+        "Forcepoint ThreatSeeker"
+      ],
+      "threat_types": [],
+      "indicators": []
+    },
+    "user_warnings": [],
+    "recommendations": [],
+    "uncertainties": [],
+    "llm_metadata": {
+      "model": "Qwen/Qwen2.5-7B-Instruct",
+      "usage": {
+        "prompt_tokens": 869,
+        "completion_tokens": 192,
+        "total_tokens": 1061
+      }
+    }
+  }
+}
