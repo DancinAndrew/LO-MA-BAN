@@ -1,0 +1,110 @@
+{
+  "total_results": 10,
+  "sources": [
+    "virustotal.com"
+  ],
+  "results": [
+    {
+      "domain": "gtidocs.virustotal.com",
+      "tld": "com",
+      "url": "https://gtidocs.virustotal.com/docs/search-gemini",
+      "title": "Ask questions with Gemini",
+      "trust_indicator": "unknown",
+      "key_risks": [],
+      "summary_snippet": "The webpage provides guidance on using the Gemini feature in Threat Intelligence for conducting natural language searches related to cybersecurity topics. Users can ask questions like \"What is APT44?\" to receive AI-generated summaries based on Google...",
+      "source": "virustotal.com"
+    },
+    {
+      "domain": "gtidocs.virustotal.com",
+      "tld": "com",
+      "url": "https://gtidocs.virustotal.com/docs/agentic-platform",
+      "title": "Agentic Platform - Google Threat Intelligence - VirusTotal",
+      "trust_indicator": "low",
+      "key_risks": [],
+      "summary_snippet": "The Agentic Platform from Google Threat Intelligence, available for Enterprise customers, provides a conversational interface powered by AI to enhance cybersecurity investigations. Users can interact with AI agents to ask questions, generate reports,...",
+      "source": "virustotal.com"
+    },
+    {
+      "domain": "gtidocs.virustotal.com",
+      "tld": "com",
+      "url": "https://gtidocs.virustotal.com/docs/alerts-guide",
+      "title": "Alerts - Google Threat Intelligence - VirusTotal",
+      "trust_indicator": "unknown",
+      "key_risks": [],
+      "summary_snippet": "The webpage provides a comprehensive guide on managing Alerts within Google Threat Intelligence's Digital Threat Monitoring (DTM) system. It explains how DTM continuously monitors the deep and dark web for mentions of specified topics or entities, ge...",
+      "source": "virustotal.com"
+    },
+    {
+      "domain": "gtidocs.virustotal.com",
+      "tld": "com",
+      "url": "https://gtidocs.virustotal.com/docs/reports-and-analysis",
+      "title": "Reports & Analysis - Google Threat Intelligence - VirusTotal",
+      "trust_indicator": "unknown",
+      "key_risks": [],
+      "summary_snippet": "The \"Reports & Analysis\" module from Google Threat Intelligence on VirusTotal offers continuously updated, detailed reports on various cybersecurity topics. These reports are crucial for organizations looking to enhance their threat detection and inc...",
+      "source": "virustotal.com"
+    },
+    {
+      "domain": "gtidocs.virustotal.com",
+      "tld": "com",
+      "url": "https://gtidocs.virustotal.com/docs/use-cases",
+      "title": "Use cases and other resources - Google Threat Intelligence",
+      "trust_indicator": "unknown",
+      "key_risks": [],
+      "summary_snippet": "The webpage on Google Threat Intelligence (Google TI) provides an overview of its use cases and resources aimed at enhancing security operations. It highlights how Google TI integrates data from Google’s infrastructure, Mandiant, and VirusTotal to of...",
+      "source": "virustotal.com"
+    },
+    {
+      "domain": "gtidocs.virustotal.com",
+      "tld": "com",
+      "url": "https://gtidocs.virustotal.com/docs/malware-tools",
+      "title": "Malware & Tools - Google Threat Intelligence - VirusTotal",
+      "trust_indicator": "unknown",
+      "key_risks": [],
+      "summary_snippet": "The webpage on \"Malware & Tools\" from Google Threat Intelligence provides a comprehensive overview of malware families and the tools associated with them. Users can filter and explore detailed information about various malware and tools based on crit...",
+      "source": "virustotal.com"
+    },
+    {
+      "domain": "gtidocs.virustotal.com",
+      "tld": "com",
+      "url": "https://gtidocs.virustotal.com/docs/campaigns",
+      "title": "Campaigns - Google Threat Intelligence - VirusTotal",
+      "trust_indicator": "unknown",
+      "key_risks": [],
+      "summary_snippet": "The \"Campaigns\" feature in Google Threat Intelligence (VirusTotal) provides security teams with insights into active threat campaigns relevant to their industries and regions. This tool helps prioritize response actions by offering a campaign-centric...",
+      "source": "virustotal.com"
+    },
+    {
+      "domain": "gtidocs.virustotal.com",
+      "tld": "com",
+      "url": "https://gtidocs.virustotal.com/docs/scan-history",
+      "title": "Scan History - Google Threat Intelligence",
+      "trust_indicator": "unknown",
+      "key_risks": [],
+      "summary_snippet": "The webpage on \"Scan History\" from Google Threat Intelligence provides a feature that allows users to visualize changes to an entity over time. This tool is useful for identifying inactive issues and tracking changes in technologies. Users can access...",
+      "source": "virustotal.com"
+    },
+    {
+      "domain": "gtidocs.virustotal.com",
+      "tld": "com",
+      "url": "https://gtidocs.virustotal.com/docs/agentic-user-guide",
+      "title": "Agentic User Guide - Google Threat Intelligence - VirusTotal",
+      "trust_indicator": "unknown",
+      "key_risks": [],
+      "summary_snippet": "The \"Agentic User Guide\" on VirusTotal provides detailed instructions on using the Agentic Platform, which leverages Google Threat Intelligence and Large Language Models to enhance cybersecurity investigations. Users can interact with AI agents to an...",
+      "source": "virustotal.com"
+    },
+    {
+      "domain": "gtidocs.virustotal.com",
+      "tld": "com",
+      "url": "https://gtidocs.virustotal.com/changelog/26-september-2024",
+      "title": "September 26th, 2024 - Gemini AI and Dark Web Monitoring improvements",
+      "trust_indicator": "unknown",
+      "key_risks": [
+        "brand_impersonation"
+      ],
+      "summary_snippet": "The webpage discusses updates to Gemini AI and Dark Web Monitoring as of September 26, 2024. Key improvements include:\n\n1. **Artificial Intelligence Enhancements**:\n   - **Code Insight Expansion**: Gemini AI now supports additional file formats (Batc...",
+      "source": "virustotal.com"
+    }
+  ]
+}

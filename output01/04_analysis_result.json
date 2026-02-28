@@ -1,0 +1,22 @@
+{
+  "id": "72444dd1-ff95-4ffe-a739-fcefb9fbff50",
+  "object": "chat.completion",
+  "created": 1772259977,
+  "model": "Qwen/Qwen2.5-7B-Instruct",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "{\n    \"risk_level\": \"critical\",\n    \"confidence\": \"high\",\n    \"risk_score\": 95,\n    \"evidence_summary\": [\n        \"目標網址使用非常規頂級域名.cfd，且同類域名大多被標記為低信任\",\n        \"目標域名包含知名品牌的仿冒版本 'allegrolokalnie'\",\n        \"目標網址包含長串參數 'oferta-id-133457-kategorie-id-192876'\",\n        \"目標網址的域名模式符合典型的釣魚網站模式\"\n    ],\n    \"pattern_analysis\": {\n        \"tld_risk\": \".cfd 是非常規頂級域名，且搜索結果中 10/10 個同類域名被標記為低信任\",\n        \"domain_pattern\": \"目標域名 'allegrolokalnie.pl-oferta-id-133457-kategorie-id-192876.cfd' 包含知名品牌的仿冒版本和長串參數\",\n        \"brand_impersonation\": \"目標域名 'allegrolokalnie' 与波蘭知名電商平台 Allegro Lokalnie 高度相似\"\n    },\n    \"similarities\": [\n        \"目標網址的域名模式與已知釣魚網站的模式高度相似\",\n        \"目標網址使用非常規頂級域名.cfd，且同類域名大多被標記為低信任\"\n    ],\n    \"uncertainties\": [\n        \"目標網址可能不在上述結果中，但基於相似域名模式和風險特徵進行間接推論\"\n    ],\n    \"warnings\": [\n        \"目標網址可能是一個釣魚網站，請謹慎處理\",\n        \"即使SSL證書有效，也不能作為網站安全的依據\"\n    ],\n    \"recommendations\": [\n        \"避免點擊目標網址上的任何鏈接\",\n        \"不要在目標網址上輸入任何敏感信息\",\n        \"報告此網址給相關機構以進行進一步調查\"\n    ],\n    \"explanation\": \"根據提供的安全搜尋結果，目標網址使用了非常規的.cfd頂級域名，且同類域名大多被標記為低信任。此外，目標網址包含了知名品牌的仿冒版本 'allegrolokalnie' 和長串參數 'oferta-id-133457-kategorie-id-192876'，這些都是典型的釣魚網站模式。因此，可以推斷目標網址極有可能是一個釣魚網站，風險等級應該被評定為 critical。\"\n}"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "system_fingerprint": "",
+  "usage": {
+    "prompt_tokens": 1634,
+    "completion_tokens": 553,
+    "total_tokens": 2187
+  }
+}

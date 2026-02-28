@@ -1,0 +1,230 @@
+{
+  "results": [
+    {
+      "url": "https://phishtank.com/what_is_phishing.php?view=website",
+      "id": "https://phishtank.com/what_is_phishing.php?view=website",
+      "title": "What is phishing? (definition of phishing, with examples)",
+      "score": null,
+      "published_date": "2024-01-01T00:00:00.000Z",
+      "author": "",
+      "image": "https://phishtank.com/images/logo_with_tagline.gif",
+      "favicon": null,
+      "subpages": null,
+      "extras": null,
+      "entities": null,
+      "text": null,
+      "summary": "Phishing is a fraudulent attempt, typically via email, to steal personal information such as credit card numbers, social security numbers, or passwords. These emails often impersonate well-known organizations and direct users to fake websites where they are prompted to enter sensitive information. To protect yourself, it's crucial to recognize phishing attempts by looking for signs such as poor-quality website visuals and suspicious URLs. Legitimate sites will use \"https\" for secure connections, while phishing sites may have forged URLs or start with an IP address. For more detailed information and examples, visit [PhishTank](https://phishtank.com/what_is_phishing.php?view=we).",
+      "highlights": [
+        "Register | Forgot Password \n* Home \n* Add A Phish * Verify A Phish \n* Phish Search \n* Stats \n* FAQ \n* Developers * Mailing Lists \n* My Account \n## What is phishing? Phishing is a fraudulent attempt, usually made through email, to steal your personal information. The best way to protect yourself from phishing is to\nlearn how to recognize a phish. Phishing emails usually appear to come from a well-known organization and ask for your personal information — such as credit card number, social security number, account number or password. Often times phishing attempts appear to ... In order for Internet criminals to successfully \"phish\" your personal information, they must get you to go from an email to a website. Phishing emails will almost always tell you to click a link that takes you to a site where your personal information is requested. Legitimate organizations would never request this information of you via email.\n** Show website annotations **\n### Examples: Phishing email /Phishing website\n \n*What to look for in a phishing website* 1. **Poor resolution.** Phishing websites are often poor in quality, since they ... 2. **Forged URL.** Even if a link has a name you recognize somewhere in it, it doesn't mean it links to the real organization. Read URLs from right to left — the real domain is at the end of the URL. Also, websites where it is safe to enter personal information begin with \"https\" — the \"s\" stands for secure. If you don't see \"https\" do not proceed. Look out for URLs that begin with an IP address, such as: http://12.34.56.78/firstgenericbank/account-update/ — these are likely phishes. Friends of PhishTank |\n Terms of Use |\n Privacy |\n Contact PhishTank is operated by Cisco Talos Intelligence Group (Talos). Learn more about PhishTank or Talos ."
+      ],
+      "highlight_scores": [
+        0.02880859375
+      ]
+    },
+    {
+      "url": "https://gtidocs.virustotal.com/reference/threat-actor-object",
+      "id": "https://gtidocs.virustotal.com/reference/threat-actor-object",
+      "title": "Threat Actor",
+      "score": null,
+      "published_date": "2024-01-26T00:00:00.000Z",
+      "author": "",
+      "image": "https://cdn.readme.io/og-image/create?type=reference&title=Threat%20Actor&projectTitle=Google%20Threat%20Intelligenc...&description=Information%20about%20threat%20actors&logoUrl=https%3A%2F%2Ffiles.readme.io%2F36053183c69708dbe5bc0de4e5ef7c17c9e0bad3dc73d8b46e26658bf21b2c3c-Logo_White.png&color=%232e3134&variant=light",
+      "favicon": "https://files.readme.io/8a425c0506719a6b468f657bcea317b4571afacdf100fe62869141e5f46bdfa3-gti-favicon-colored.svg",
+      "subpages": null,
+      "extras": null,
+      "entities": null,
+      "text": null,
+      "summary": "The webpage titled \"Threat Actor\" on VirusTotal's documentation site provides detailed information about threat actors, which are individuals or groups engaged in malicious activities targeting computer systems and networks. The page likely includes definitions, characteristics, and examples of various threat actors, as well as their motivations and methods. It serves as a reference for understanding the landscape of cyber threats and can be useful for cybersecurity professionals looking to identify and mitigate risks associated with these actors. For specific inquiries or use cases related to threat actors, the documentation may offer relevant insights and guidance.",
+      "highlights": [
+        "Threat Actor\n Jump to Content \n Google Threat Intelligence **Home **Documentation **Reference **Release Notes Use Cases Google Threat Intelligence \n**Reference\nThreat Actor\nAll\nPages\n###### Start typing to search… # Threat Actor\nInformation about threat actors"
+      ],
+      "highlight_scores": [
+        -0.0927734375
+      ]
+    },
+    {
+      "url": "https://www.scamadviser.com/articles/how-to-recognize-a-scam-website",
+      "id": "https://www.scamadviser.com/articles/how-to-recognize-a-scam-website",
+      "title": "How to Recognize a Scam Website | ScamAdviser",
+      "score": null,
+      "published_date": null,
+      "author": "",
+      "image": "https://www.scamadviser.com/images/static/trust/logo225x220.png",
+      "favicon": "https://www.scamadviser.com/images/static/favicon/favicon-32x32.png",
+      "subpages": null,
+      "extras": null,
+      "entities": null,
+      "text": null,
+      "summary": "The webpage titled \"How to Recognize a Scam Website\" on ScamAdviser provides essential tips for identifying fraudulent websites. Key indicators of a scam site include poor website design, lack of contact information, and suspicious payment methods. Users are advised to check for secure connections (HTTPS), read reviews, and look for trust seals. The article emphasizes the importance of researching the website's reputation and using tools like ScamAdviser to verify legitimacy. For anyone concerned about online safety, this guide serves as a practical resource to avoid scams.",
+      "highlights": [
+        "IQ Test] \n* Business \n*\n \n**\n \n*\nen** ... Scamadviser logo \nWebsitePhoneCryptoIBAN\n**\n*\nen**\n* Deutsch * English \n* Español \n* Français \n* Italiano \n* 日本 ... * Ukrainian \n* 简体中文 \n* Register | Login \n* Report a Scam * (Beta) Scam IQ Test \n* Business \n* Try our App \n# How to Recognize a Scam Website ** Tips & Support ** #Online Shopping Scams #Fake Product Scams (Counterfeits) #Fake Online Stores \n** Copied\n* ** Facebook \n* ** Twitter \n* ** WhatsApp \n* **Messages * **Copy Link\n## Author: James Greening\nJanuary 21, 2019\n Embedded YouTube video As the influence of the internet rises, so does the prevalence of online scams. There are fraudsters making all kinds of claims to trap victims online - from fake investment opportunities to online stores - and the internet allows them to operate from any part of the world with anonymity. The ability to spot online scams is an important skill to have as the virtual world is increasingly becoming a part of every facet of our lives. The below tips will help you identify ... wouldn’t want to grab such a deal? Scammers know this too and try to take advantage of the fact. If an online deal looks too good to be true, think twice and double-check things. The easiest way to do this is to ... A lot of fraudulent web shops use brand names (Adidas, Chanel, Apple) in combination with words like ‘discounted’, ... websites. Therefore, it is advisable to not rely on reviews which are on the website alone. Websites like Scamadviser, TrustPilot and others allow users to leave reviews which cannot be deleted or edited by companies. Checking external ... When (still) in doubt, do not do it! Our advice here at Scamadviser is that if you are still unsure, it’s better to be ... How to Recognise a Scam - Phishing \n How to Recognise a Scam – Copy Cat Websites How to Recognise a Scam – Employment Scams How to Recognise a Scam – Deals That Are Too Good to be True ... * **ScamAdviser** : ScamAdviser focusses on identifying online scams, be it online stores not delivering or ... * ** URLscan.io **: URLscan is meant for the more technical savvy users. It provides a massive amount of ... ### Check a Video As the technology keeps improving, Deepfakes are becoming easier to create and harder to identify. They have been used ... * **Deepware** : Scan a suspicious video to find out if it’s synthetically manipulated. The project is ... \nDownload ScamAdviser app. Stop Scams\n \n#### Report a Scam!\n Have you fallen for a hoax, bought a fake product? Report the site and warn others!\n \nReport a Scam!\n ... * Global Scam Country Guide (44) \n* News about Scamadviser (41) \n* Fact Check (41) ... * Tips & Support (24) \n* Advice for Companies (2) \n## Help & Info **Scam Alerts **Learn Scams [**Reliable ... Disclaimer: Some of the links here are affiliate links. If you click them and make a purchase, we may earn a commission at no extra cost to you. 1. ** ScamAdviser App - iOS ** : Your personal scam detector, on the go! Check website safety, report scams, ... 2. ** ScamAdviser App - Android ** : Your personal scam detector, on the go! Check website safety, report ... 3. ** NordVPN ** : NordVPN keeps your connection private and secure whether you are at home, traveling, or ... 4. ** Incogni ** : Incogni automatically removes your personal data from data brokers that trade in personal ... ## Popular Stories\n #### How to Recognize a Scam Website\n As the influence of the internet rises, so does the prevalence of online scams. There are fraudsters making all kinds of claims to trap victims online - from fake investment opportunities to online stores - and the internet allows them to operate from any part of the world with anonymity. The ability to spot online scams is an important skill to have as the virtual world is increasingly becoming a part of every facet of our lives. The below tips will help you identify ... wouldn’t want to grab such a deal? Scammers know this too and try to take advantage of the fact. If an online deal looks too"
+      ],
+      "highlight_scores": [
+        0.03955078125
+      ]
+    },
+    {
+      "url": "https://otx.alienvault.com/indicator/domain/mesvr.com",
+      "id": "https://otx.alienvault.com/indicator/domain/mesvr.com",
+      "title": "LevelBlue - Open Threat Exchange",
+      "score": null,
+      "published_date": null,
+      "author": "",
+      "image": "/assets/images/otx-logo-twitter.png",
+      "favicon": null,
+      "subpages": null,
+      "extras": null,
+      "entities": null,
+      "text": null,
+      "summary": "The webpage for LevelBlue - Open Threat Exchange provides information about a specific domain indicator, \"mesvr.\" It is part of a platform that facilitates sharing and analyzing threat intelligence. Users can access data related to the domain, including its threat level and associated indicators. This resource is valuable for cybersecurity professionals looking to enhance their threat detection and response capabilities. For more detailed insights, visit the provided URL.",
+      "highlights": [
+        "LevelBlue - Open Threat Exchange\n\n×"
+      ],
+      "highlight_scores": [
+        -0.0050048828125
+      ]
+    },
+    {
+      "url": "https://otx.alienvault.com/indicator/domain/d2fxzf04.na1.hs-sales-sub.com",
+      "id": "https://otx.alienvault.com/indicator/domain/d2fxzf04.na1.hs-sales-sub.com",
+      "title": "LevelBlue - Open Threat Exchange",
+      "score": null,
+      "published_date": null,
+      "author": "",
+      "image": "/assets/images/otx-logo-twitter.png",
+      "favicon": null,
+      "subpages": null,
+      "extras": null,
+      "entities": null,
+      "text": null,
+      "summary": "The webpage for LevelBlue - Open Threat Exchange provides information about a specific domain indicator (d2fxzf) related to cybersecurity threats. It is part of a platform that allows users to share and access threat intelligence. The page likely includes details on the threat level associated with the domain, its potential risks, and any relevant indicators of compromise. For specific insights related to the user query, it would be beneficial to explore the provided link further for detailed threat analysis and context.",
+      "highlights": [
+        "LevelBlue - Open Threat Exchange\n×\n**Loading..."
+      ],
+      "highlight_scores": [
+        0.009521484375
+      ]
+    },
+    {
+      "url": "https://docs.virustotal.com/docs/livehunt",
+      "id": "https://docs.virustotal.com/docs/livehunt",
+      "title": "Livehunt",
+      "score": null,
+      "published_date": "2017-04-12T00:00:00.000Z",
+      "author": "",
+      "image": "https://cdn.readme.io/og-image/create?type=docs&title=Livehunt&projectTitle=VirusTotal&description=Livehunt%20allows%20you%20to%20hook%20into%20the%20stream%20of%20files%20analyzed%20by%20VirusTotal%20and%20get%20notified%20whenever%20one%20of%20them%20matches%20a%20certain%20rule%20written%20in%20the%20YARA%20language.%20By%20applying%20YARA%20rules%20to%20the%20files%20analyzed%20by%20VirusTotal%20you%20should%20be%20able%20to%20get%20a%20constant%20flow%20of%20malware%20files%20classified%20by%20f%E2%80%A6&logoUrl=https%3A%2F%2Ffiles.readme.io%2F58ab079-small-Asset_1.png&color=%232e3134&variant=light",
+      "favicon": "https://files.readme.io/acb1084-small-flag.png",
+      "subpages": null,
+      "extras": null,
+      "entities": null,
+      "text": null,
+      "summary": "The Livehunt feature from VirusTotal allows users to continuously monitor and analyze files, URLs, and domains for potential threats in real-time. It provides automated alerts for newly detected malicious content, enabling proactive security measures. Users can customize their search parameters and receive notifications based on specific criteria. This tool is particularly useful for cybersecurity professionals looking to enhance their threat intelligence capabilities. For more details, visit the [Livehunt documentation](https://docs.virustotal.com/docs/livehunt).",
+      "highlights": [
+        "Livehunt\n Jump to Content \n VirusTotal **Home **Guides **API Reference v2.0v3.0\n VirusTotal **Guides\nLivehunt\nAll\nPages\n###### Start typing to search…\n# Livehunt\n**Updated4 days ago"
+      ],
+      "highlight_scores": [
+        -0.1162109375
+      ]
+    },
+    {
+      "url": "https://otx.alienvault.com/pulse/68146cb73cbceeaf312310ad",
+      "id": "https://otx.alienvault.com/pulse/68146cb73cbceeaf312310ad",
+      "title": "LevelBlue - Open Threat Exchange",
+      "score": null,
+      "published_date": null,
+      "author": "",
+      "image": "/assets/images/otx-logo-twitter.png",
+      "favicon": null,
+      "subpages": null,
+      "extras": null,
+      "entities": null,
+      "text": null,
+      "summary": "The webpage titled \"LevelBlue - Open Threat Exchange\" on AlienVault's OTX platform provides insights into the LevelBlue threat intelligence initiative. It focuses on sharing and analyzing threat data to enhance cybersecurity measures. The page likely includes information on specific threats, indicators of compromise (IOCs), and collaborative efforts to improve threat detection and response. For users interested in threat intelligence and cybersecurity, this resource can be valuable for understanding emerging threats and leveraging community-shared data.",
+      "highlights": [
+        "LevelBlue - Open Threat Exchange\n×\n**Loading..."
+      ],
+      "highlight_scores": [
+        0.009521484375
+      ]
+    },
+    {
+      "url": "https://manage.whois.com/kb/sites/default/files/Guide_to_dottel.pdf",
+      "id": "https://manage.whois.com/kb/sites/default/files/Guide_to_dottel.pdf",
+      "title": "",
+      "score": null,
+      "published_date": null,
+      "author": "",
+      "image": null,
+      "favicon": null,
+      "subpages": null,
+      "extras": null,
+      "entities": null,
+      "text": null,
+      "summary": "The webpage provides a comprehensive guide to the .tel domain, a unique top-level domain that allows users to store and manage their contact information directly within the Domain Name System (DNS). Key features of .tel include:\n\n1. **Contact Management**: Users can consolidate various contact details (phone numbers, email addresses, social media links) under a single .tel address, making it easier for others to reach them.\n\n2. **Instant Updates**: Changes to contact information are updated in real-time, ensuring that friends and colleagues can always find the latest details.\n\n3. **Customizable Privacy**: Users can control who sees their information, with options to encrypt data and share it selectively.\n\n4. **Location Sharing**: The .tel domain allows users to share their current location, which can be useful for personalized services.\n\n5. **Keyword Usage**: Users can add keywords to describe themselves, enhancing their online presence.\n\nOverall, the .tel domain serves as a versatile tool for managing personal and professional contact information efficiently.",
+      "highlights": [
+        "Your Guide to.tel\nFebruary 2009\n2\nCONTENTS\nThe concept 3\nWhat can I do with my.tel? 4 What should I avoid using my.tel for? 6\nSet up your.tel 7\nThe Dashboard 8\nProfiles 9\nContact Information 11 Text Header 14\nKeywords 14\nFolders 16\nLocation 18\nFolders vs. Groups vs. Profiles 19\nPrivacy & Friending 20\nPrivacy 21 Friending 24\nMore Information 28\n3\nTHE CONCEPT The.tel is a new top-level domain that allows the.tel domain owner to store, publish and manage contact information and keywords directly in the Domain Name System (DNS), the global and powerful system that stores locations of all the websites in the world. This is the first service of its kind that enables anyone to use the DNS to store information other than the location of websites. It provides an exciting new use of internet infrastructure that will completely change the way we communicate and keep in touch with others.\nThe.tel allows you to: ... • Manage contact information, text, keywords and location • Create folders that allow easy navigation, like london.uk.hertz.tel\n• Create Profiles, such as work, home, travelling ... Wherever life takes you, you’ll always be in the right place for your friends, family, colleagues and associates to find you. Your.tel domain name is accessible from any ... WHAT CAN I DO?\nTake a moment to familiarize yourself with your new.tel domain name. Let’s remind you of ... It’s one simple contact address for life – All you need to do is to give your friends, family and colleagues your.tel address, and they will then be able to keep in touch with you how \nand when you want them to. All of your contact information is in one place – The.tel enables you to store all of your ... social media pages, your blog sites, location-based sites, links to OpenID, OpenSocial or ... all under one simple name. You can also store your information in an encrypted form, so no ... Tell the world about yourself – Your.tel also allows you to use an unlimited number of ... you can access it from any device with an internet connection through a browser. You don’t ... significant benefit of not storing the information as HTML on a website – the.tel is fast, low\u0002cost and easy to access in any format. With.tel, you do not need to host, manage and ... the.tel enables you to be discovered more quickly through search engines. The structured information, keywords and links to a domain name all enable search engines to see the ... Easily change your published profile – You will be able to set up a profile like ‘work’, ‘home’, ‘travel’, ‘holiday’ and so forth (the profile titles will only be visible to you) that quickly ... depending on which profile you make active.\n6\nWHAT SHOULD I AVOID USING MY.TEL FOR? Keyword functionality should only be used to help people find you if you haven’t given them your.tel domain name. It is not the right place for you to store your CV or information you might easily forget. Make sure that you only put information that is helpful for people to find ... When you register your.tel domain name, you are provided with a username and password to manage your.tel domain name, as well as a link to the management panel where you can store, change, update and publish contact information under your.tel. Use the username and password to log into the.tel control panel. Never give anyone else your username and/or password for your.tel. This is crucial in maintaining the security and integrity of your contact information. Telnic will never ask you ... Once you have logged into the control panel, you have complete control over your.tel. The information you store as private will not be accessible by anyone without your permission. ... THE DASHBOARD\nOnce you’ve registered your.tel domain, you will be routed to the management console or Dashboard (see Fig.1). This is the main control panel for populating your new.tel domain with contact information, text, keywords and, if you would like, a location. The Dashboard has a number of distinct parts that will be"
+      ],
+      "highlight_scores": [
+        0.0225830078125
+      ]
+    },
+    {
+      "url": "https://www.whois.com/whois/F7L81RXEBCZP.XYZ",
+      "id": "https://www.whois.com/whois/F7L81RXEBCZP.XYZ",
+      "title": "Whois f7l81rxebczp.xyz",
+      "score": null,
+      "published_date": null,
+      "author": "",
+      "image": "https://www.whois.com/images/og.png",
+      "favicon": "https://www.whois.com/images/favicon.ico",
+      "subpages": null,
+      "extras": null,
+      "entities": null,
+      "text": null,
+      "summary": "The webpage provides a Whois lookup for the domain f7l81rxebczp.xyz, offering details about its registration, ownership, and related information. If you're looking for specific data regarding this domain, such as its registrant, registration dates, or DNS information, you can find that on the provided link.",
+      "highlights": [
+        "Whois f7l81rxebczp.xyz\n\n#### Security Check\n\nPlease respond to the question below to continue. We serve cookies on this site to analyze traffic, remember your preferences, and optimize your experience. Learn more DismissAccept"
+      ],
+      "highlight_scores": [
+        -0.0703125
+      ]
+    },
+    {
+      "url": "https://www.whois.com/whois/XGTCTQIJ.XYZ",
+      "id": "https://www.whois.com/whois/XGTCTQIJ.XYZ",
+      "title": "Whois xgtctqij.xyz",
+      "score": null,
+      "published_date": null,
+      "author": "",
+      "image": "https://www.whois.com/images/og.png",
+      "favicon": "https://www.whois.com/images/favicon.ico",
+      "subpages": null,
+      "extras": null,
+      "entities": null,
+      "text": null,
+      "summary": "The webpage provides a WHOIS lookup for the domain xgtctqij.xyz, but does not contain specific information about the domain itself. Instead, it features various domain registration offers and pricing for different top-level domains (TLDs). If you are looking for details about the ownership, registration date, or status of xgtctqij.xyz, this page does not provide that information. For specific WHOIS details, you may need to use a dedicated WHOIS service or tool.",
+      "highlights": [
+        "zz] \n.BUZZ @ $2.48 ~~$42.88~~ ] \n \n.ICU @ $1.48 ~~$17.48~~\n \n \n.INFO @ $5.28 ~~$29.88~~\n \n \n.FUN @ $1.48 ~~$35.88~~ \n \n.LIFE @ $2.48 ~~$38.88~~\n \n \n.LIVE @ $3.48 ~~$34.88~~\n \n \n.ONLINE @ $5.28 ~~$39.88~~ \n \n.PRO @ $4.48 ~~$35.88~~\n \n \n.ROCKS @ $3.98 ~~$24.88~~\n \n \n.SHOP @ $1.98 ~~$46.88~~ \n \n.SITE @ $3.28 ~~$41.88~~\n \n \n.TODAY @ $3.28 ~~$31.88~~\n \n \n.TOP @ $1.98 ~~$10.88~~ \n \n.UNO @ $1.98 ~~$28.88~~\n \n \n.WEBSITE @ $4.28 ~~$35.88~~\n \n \n.WORLD @ $2.88 ~~$44.88~~ \n12345678910111213141516\n WordPress Hosting"
+      ],
+      "highlight_scores": [
+        -0.015869140625
+      ]
+    }
+  ],
+  "resolved_search_type": "neural",
+  "auto_date": null,
+  "context": null,
+  "output": null,
+  "statuses": null,
+  "cost_dollars": {
+    "total": 0.025,
+    "search": {
+      "neural": 0.005
+    },
+    "contents": {
+      "highlights": 0.01,
+      "summary": 0.01
+    }
+  },
+  "search_time": 11632.2
+}
