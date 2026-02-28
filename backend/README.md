@@ -34,8 +34,8 @@ uv run python main.py
 
 Server 啟動後（預設 port 為 `.env` 的 `PORT`，未設則 8000）：
 - API: `http://localhost:8000`
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
+- **Swagger UI** (`http://localhost:8000/docs`) — 互動式 API 文件，可在此頁面直接發送請求、查看 request/response 結構，適合除錯與手動測試。
+- **ReDoc** (`http://localhost:8000/redoc`) — 以閱讀為主的 API 文件（三欄式排版），適合查閱端點說明與 schema，不提供「Try it out」。
 
 ## Environment Variables
 
