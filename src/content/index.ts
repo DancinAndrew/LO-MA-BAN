@@ -9,18 +9,17 @@ function isHttpUrl(url: string): boolean {
 
 function showLoadingOverlay(targetUrl: string) {
   if (loadingOverlay) return
-  const popup = document.createElement('div')
-  popup.setAttribute('data-scoutnet-loading', 'true')
-  popup.style.position = 'fixed'
-  popup.style.top = '50%'
-  popup.style.left = '50%'
-  popup.style.transform = 'translate(-50%, -50%)'
-  popup.style.zIndex = '2147483647'
-  popup.style.display = 'flex'
-  popup.style.flexDirection = 'column'
-  popup.style.gap = '0'
-  popup.style.fontFamily = "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft JhengHei', sans-serif"
-  popup.style.pointerEvents = 'none'
+  const wrap = document.createElement('div')
+  wrap.setAttribute('data-scoutnet-loading', 'true')
+  wrap.style.position = 'fixed'
+  wrap.style.inset = '0'
+  wrap.style.zIndex = '2147483647'
+  wrap.style.background = 'rgba(0, 0, 0, 0.35)'
+  wrap.style.backdropFilter = 'blur(4px)'
+  wrap.style.display = 'flex'
+  wrap.style.alignItems = 'center'
+  wrap.style.justifyContent = 'center'
+  wrap.style.fontFamily = "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft JhengHei', sans-serif"
 
   const card = document.createElement('div')
   card.style.background = '#fff'
@@ -61,16 +60,16 @@ function showLoadingOverlay(targetUrl: string) {
 
   card.appendChild(spinner)
   card.appendChild(col)
-  popup.appendChild(card)
+  wrap.appendChild(card)
 
   const style = document.createElement('style')
   style.textContent = `
 @keyframes scoutnet-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 `
-  popup.appendChild(style)
+  wrap.appendChild(style)
 
-  document.documentElement.appendChild(popup)
-  loadingOverlay = popup
+  document.documentElement.appendChild(wrap)
+  loadingOverlay = wrap
 }
 
 function hideLoadingOverlay() {
