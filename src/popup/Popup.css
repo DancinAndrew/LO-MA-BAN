@@ -1,110 +1,41 @@
 :root {
-  --popup-cute-bg: linear-gradient(160deg, #fff5f0 0%, #ffe8e0 40%, #fff0eb 100%);
-  --popup-cute-card: #fff;
-  --popup-cute-border: rgba(255, 182, 160, 0.4);
-  --popup-cute-text: #5c4033;
-  --popup-cute-muted: #a07868;
-  --popup-cute-on: #7cb87c;
-  --popup-cute-on-soft: #e8f5e9;
-  --popup-cute-off: #b0a0a0;
-  --popup-cute-off-soft: #f5f0f0;
-  --popup-cute-shadow: 0 4px 20px rgba(220, 140, 120, 0.12);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
 }
 
 body {
   margin: 0;
-  background: var(--popup-cute-bg);
 }
 
 .popup {
-  width: 280px;
-  min-height: 200px;
-  padding: 0;
+  width: 320px;
+  min-height: 180px;
+  padding: 16px;
   box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  background: var(--popup-cute-card);
-  border-radius: 20px;
-  box-shadow: var(--popup-cute-shadow);
-  overflow: hidden;
-  border: 1px solid var(--popup-cute-border);
+  display: grid;
+  gap: 12px;
 }
 
-.popup-header {
-  padding: 20px 20px 12px;
-  text-align: center;
-}
-
-/* 小狐狸 icon */
-.popup-icon {
-  display: block;
-  width: 40px;
-  height: 40px;
-  margin: 0 auto 8px;
-  object-fit: contain;
-}
-
-.popup-title {
+.popup h1 {
   margin: 0;
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--popup-cute-text);
-  letter-spacing: -0.3px;
+  font-size: 18px;
 }
 
-.popup-subtitle {
-  margin: 4px 0 0;
-  font-size: 12px;
-  color: var(--popup-cute-muted);
-  font-weight: 500;
+.popup p {
+  margin: 0;
+  color: #334155;
 }
 
-.popup-toggle-section {
-  padding: 16px 20px 24px;
-}
-
-.popup-turn-row {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-.popup-turn-btn {
-  flex: 1;
-  border: 2px solid var(--popup-cute-border);
-  border-radius: 14px;
-  padding: 12px 16px;
-  font-size: 14px;
+.popup button {
+  width: 100%;
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #2563eb;
+  color: #fff;
   font-weight: 600;
   cursor: pointer;
-  background: var(--popup-cute-off-soft);
-  color: var(--popup-cute-muted);
-  transition: all 0.2s ease;
 }
 
-.popup-turn-btn:hover {
-  background: #faf5f5;
-  border-color: rgba(255, 182, 160, 0.6);
-  color: var(--popup-cute-text);
-}
-
-.popup-turn-btn--active {
-  background: var(--popup-cute-on-soft);
-  border-color: var(--popup-cute-on);
-  color: #2e6b2e;
-  box-shadow: 0 2px 10px rgba(124, 184, 124, 0.25);
-}
-
-.popup-turn-btn--active:hover {
-  background: #dceddc;
-  border-color: #6aab6a;
-}
-
-.popup-hint {
-  margin: 0;
-  font-size: 11px;
-  color: var(--popup-cute-muted);
-  text-align: center;
-  line-height: 1.4;
+.popup button:hover {
+  background: #1d4ed8;
 }

@@ -1,7 +1,6 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import '../styles/ScoutNet.css';
 import { EMPTY_SITE_DATA, type SiteData, type ReportData } from '../siteDetection';
-import { callPersuade, type PersuasionResponse } from '../secondStageApi';
 
 type Step =
   | 'rating'
@@ -12,7 +11,7 @@ type Step =
   | 'next_steps'
   | 'confirm'
   | 'enter'
-  | 'persuade_result';
+  | 'final';
 
 type ConversationEntry = { step: Step; userReply: string };
 
@@ -28,11 +27,8 @@ export type ScoutNetProps = {
 const ScoutNet: React.FC<ScoutNetProps> = ({ siteData: siteDataProp, onLeaveSite, onProceedToUrl }) => {
   const [currentStep, setCurrentStep] = useState<Step>('rating');
   const [conversation, setConversation] = useState<ConversationEntry[]>([]);
-  const [selectedQuizExplanation, setSelectedQuizExplanation] = useState<string | null>(null);
   const [enterReason, setEnterReason] = useState('');
-  const [persuadeResult, setPersuadeResult] = useState<PersuasionResponse | null>(null);
-  const [persuadeLoading, setPersuadeLoading] = useState(false);
-  const [persuadeError, setPersuadeError] = useState(false);
+  const [selectedQuizExplanation, setSelectedQuizExplanation] = useState<string | null>(null);
   const threadRef = useRef<HTMLDivElement>(null);
 
   const siteData: SiteData = siteDataProp ?? EMPTY_SITE_DATA;
@@ -58,29 +54,9 @@ const ScoutNet: React.FC<ScoutNetProps> = ({ siteData: siteDataProp, onLeaveSite
   const resetFlow = () => {
     setCurrentStep('rating');
     setConversation([]);
-    setSelectedQuizExplanation(null);
     setEnterReason('');
-    setPersuadeResult(null);
-    setPersuadeLoading(false);
-    setPersuadeError(false);
+    setSelectedQuizExplanation(null);
   };
-
-  /** Submit in ScoutNet: 打包 user_input + first_stage_report → call persuade API → 顯示結果 */
-  const onSubmitReason = useCallback(async () => {
-    if (!enterReason.trim()) return;
-    setConversation((prev) => [...prev, { step: 'enter', userReply: enterReason.trim() }]);
-    const firstStageReport = report
-      ? (JSON.parse(JSON.stringify(report)) as Record<string, unknown>)
-      : {};
-    setPersuadeLoading(true);
-    setPersuadeResult(null);
-    setPersuadeError(false);
-    const result = await callPersuade(enterReason.trim(), firstStageReport);
-    setPersuadeLoading(false);
-    if (result) setPersuadeResult(result);
-    else setPersuadeError(true);
-    setCurrentStep('persuade_result');
-  }, [enterReason, report]);
 
   const sendReply = (userReply: string, nextStep: Step) => {
     setConversation((prev) => [...prev, { step: currentStep, userReply }]);
@@ -88,8 +64,7 @@ const ScoutNet: React.FC<ScoutNetProps> = ({ siteData: siteDataProp, onLeaveSite
   };
 
   // Fox message bubbles only (no reply UI) — left side: our website guardian
-  // isCurrentStep: when true, show typing for enter if loading; when false (from history), always show the question
-  const renderFoxBubbles = (step: Step, isCurrentStep?: boolean) => (
+  const renderFoxBubbles = (step: Step) => (
     <div className="chat-message chat-message--fox">
       <div className="chat-fox-side">
         <div className="chat-avatar" aria-hidden>🦊</div>
@@ -240,59 +215,24 @@ const ScoutNet: React.FC<ScoutNetProps> = ({ siteData: siteDataProp, onLeaveSite
           </div>
         )}
         {step === 'enter' && (
-          isCurrentStep && persuadeLoading ? (
-            <div className="chat-bubble" style={{ padding: '10px 14px' }}>
-              <span className="scoutnet-typing-indicator">
-                ScoutNet 正在輸入中 typing
-                <span className="dot" />
-                <span className="dot" />
-                <span className="dot" />
-              </span>
-            </div>
-          ) : (
-            <div className="chat-bubble">
-              <p className="chat-bubble-text">Why do you want to still go to the website? Please fill in your reason (required), then click Submit. We’ll call the persuade API and show ScoutNet’s suggestions.</p>
-            </div>
-          )
-        )}
-        {step === 'persuade_result' && (
-          <div className="chat-bubble chat-bubble--card">
-            {persuadeError && <p className="chat-bubble-text" style={{ color: '#991b1b' }}>無法取得建議，您仍可確認前往或返回。</p>}
-            {persuadeResult && (
-              <>
-                <p className="chat-bubble-label">您的原因</p>
-                <p className="chat-bubble-text" style={{ marginBottom: 8 }}>{enterReason.trim()}</p>
-                {persuadeResult.first_stage_report_summary && (
-                  <p className="chat-bubble-note" style={{ marginBottom: 8 }}>
-                    {[persuadeResult.first_stage_report_summary.risk_label, persuadeResult.first_stage_report_summary.risk_level, persuadeResult.first_stage_report_summary.risk_score != null && `安全分數 ${persuadeResult.first_stage_report_summary.risk_score}`].filter(Boolean).join(' · ')}
-                  </p>
-                )}
-                {persuadeResult.second_stage_result?.reason_analysis?.empathy_note && (
-                  <p className="chat-bubble-text" style={{ marginBottom: 6 }}>{persuadeResult.second_stage_result.reason_analysis.empathy_note}</p>
-                )}
-                {persuadeResult.second_stage_result?.behavior_consequence_warning && (
-                  <p className="chat-bubble-text" style={{ marginBottom: 6, fontSize: 13 }}>{persuadeResult.second_stage_result.behavior_consequence_warning}</p>
-                )}
-                {(persuadeResult.second_stage_result?.general_warnings?.length ?? 0) > 0 && (
-                  <ul style={{ margin: '4px 0 8px', paddingLeft: 20, fontSize: 13 }}>
-                    {persuadeResult.second_stage_result.general_warnings!.map((w: string, i: number) => (
-                      <li key={i}>{w}</li>
-                    ))}
-                  </ul>
-                )}
-                {(persuadeResult.second_stage_result?.recommended_actions?.length ?? 0) > 0 && (
-                  <ul style={{ margin: '4px 0 8px', paddingLeft: 20, fontSize: 13 }}>
-                    {persuadeResult.second_stage_result.recommended_actions!.map((a: string, i: number) => (
-                      <li key={i}>{a}</li>
-                    ))}
-                  </ul>
-                )}
-                {persuadeResult.second_stage_result?.encouraging_message && (
-                  <p className="chat-bubble-text" style={{ marginTop: 8, fontWeight: 500 }}>{persuadeResult.second_stage_result.encouraging_message}</p>
-                )}
-              </>
-            )}
+          <div className="chat-bubble">
+            <p className="chat-bubble-text">Why do you still want to enter? Please enter your reason below.</p>
           </div>
+        )}
+        {step === 'final' && (
+          <>
+            <div className="chat-bubble">
+              <p className="chat-bubble-text">
+                {report?.kid_friendly_summary?.title ?? 'Please be careful with this site'}
+              </p>
+            </div>
+            <div className="chat-bubble chat-bubble--warning">
+              <p className="chat-bubble-text">You said: {enterReason || '(not provided)'}</p>
+              <p className="chat-bubble-note">
+                {report?.kid_friendly_summary?.simple_message ?? 'This site may be risky.'}
+              </p>
+            </div>
+          </>
         )}
       </div>
     </div>
@@ -399,20 +339,19 @@ const ScoutNet: React.FC<ScoutNetProps> = ({ siteData: siteDataProp, onLeaveSite
             className="chat-reply chat-reply--secondary"
             onClick={() => sendReply('I want to go in', 'enter')}
           >
-            I still want to go in
+            I want to go in
           </button>
         </div>
       );
     }
 
     if (currentStep === 'enter') {
-      if (persuadeLoading) return null;
       return (
         <>
           <div className="chat-reply-input-wrap">
             <textarea
               className="chat-reply-textarea"
-              placeholder="e.g. I need to check something for school (required)"
+              placeholder="Please enter your reason…"
               value={enterReason}
               onChange={(e) => setEnterReason(e.target.value)}
               rows={3}
@@ -422,11 +361,9 @@ const ScoutNet: React.FC<ScoutNetProps> = ({ siteData: siteDataProp, onLeaveSite
             <button
               type="button"
               className="chat-reply chat-reply--primary"
-              onClick={onSubmitReason}
-              disabled={!enterReason.trim()}
-              style={{ opacity: enterReason.trim() ? 1 : 0.6 }}
+              onClick={() => sendReply(enterReason || 'Sent', 'final')}
             >
-              Submit
+              Send
             </button>
             <button
               type="button"
@@ -440,7 +377,7 @@ const ScoutNet: React.FC<ScoutNetProps> = ({ siteData: siteDataProp, onLeaveSite
       );
     }
 
-    if (currentStep === 'persuade_result') {
+    if (currentStep === 'final') {
       return (
         <div className="chat-replies">
           <button
@@ -460,7 +397,7 @@ const ScoutNet: React.FC<ScoutNetProps> = ({ siteData: siteDataProp, onLeaveSite
               if (onProceedToUrl) onProceedToUrl();
             }}
           >
-            Confirm 前往
+            I still want to go in
           </button>
         </div>
       );
@@ -487,11 +424,11 @@ const ScoutNet: React.FC<ScoutNetProps> = ({ siteData: siteDataProp, onLeaveSite
             <div className="chat-thread-inner">
               {conversation.map((entry, i) => (
                 <React.Fragment key={i}>
-                  {renderFoxBubbles(entry.step, false)}
+                  {renderFoxBubbles(entry.step)}
                   {renderUserBubble(entry.userReply)}
                 </React.Fragment>
               ))}
-              {renderFoxBubbles(currentStep, true)}
+              {renderFoxBubbles(currentStep)}
               {renderReplyInput()}
             </div>
           </div>
