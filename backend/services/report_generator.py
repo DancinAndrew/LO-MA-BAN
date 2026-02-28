@@ -10,6 +10,10 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from config import (
+    HIGH_RISK_TLDS, COMMON_TLDS, SUSPICIOUS_DOMAIN_LENGTH,
+    KID_FRIENDLY_REPLACEMENTS,
+)
 from services.quiz_generator import QuizGenerator
 
 logger = logging.getLogger(__name__)
@@ -19,14 +23,7 @@ def simplify_text(text: str, max_length: int = 150) -> str:
     if not text:
         return ""
     text = re.sub(r"\s+", " ", text.strip())
-    replacements = {
-        "釣魚網站": "騙人的假網站", "惡意軟體": "壞壞的程式",
-        "SSL 證書": "安全鎖", "頂級域名": "網址的尾巴",
-        "個資": "個人資料", "仿冒": "假裝成", "威脅情報": "安全檢查",
-        "色情": "不適合小朋友看的內容", "成人內容": "大人才能看的內容",
-        "暴力": "打打殺殺的畫面",
-    }
-    for old, new in replacements.items():
+    for old, new in KID_FRIENDLY_REPLACEMENTS.items():
         text = text.replace(old, new)
     if len(text) > max_length:
         text = text[: max_length - 3] + "..."
@@ -191,15 +188,14 @@ class ReportGeneratorService:
         return text[:10] + "..." if len(text) > 10 else text
 
     def _generate_pattern_analysis(self) -> dict[str, Any]:
-        high_risk_tlds = {"cfd", "top", "rest", "xyz", "loan", "click", "work"}
-        is_high_risk = self.target_tld.lower() in high_risk_tlds
+        is_high_risk = self.target_tld.lower() in HIGH_RISK_TLDS
         domain_len = len(self.target_domain)
         has_numbers = any(c.isdigit() for c in self.target_domain)
         has_hyphens = "-" in self.target_domain
         return {
             "tld_analysis": {
                 "tld": self.target_tld,
-                "is_common": self.target_tld.lower() in {"com", "tw", "org", "net", "edu"},
+                "is_common": self.target_tld.lower() in COMMON_TLDS,
                 "is_high_risk": is_high_risk,
                 "kid_message": f"網址的尾巴 `.{self.target_tld}` "
                                + ("很少見，要特別小心" if is_high_risk else "是常見的，比較放心"),
@@ -207,15 +203,15 @@ class ReportGeneratorService:
             "domain_structure": {
                 "length": domain_len, "has_numbers": has_numbers, "has_hyphens": has_hyphens,
                 "kid_message": (
-                    f"域名{'長長又複雜' if domain_len > 30 or has_numbers or has_hyphens else '簡單好記'}，"
-                    + ("正規網站通常簡單喔" if domain_len > 30 else "")
+                    f"域名{'長長又複雜' if domain_len > SUSPICIOUS_DOMAIN_LENGTH or has_numbers or has_hyphens else '簡單好記'}，"
+                    + ("正規網站通常簡單喔" if domain_len > SUSPICIOUS_DOMAIN_LENGTH else "")
                 ),
             },
             "visual_summary": {
                 "url_parts": [
                     {"part": "https://", "label": "協定", "safe": True},
                     {"part": self.target_domain, "label": "域名",
-                     "safe": not (is_high_risk or domain_len > 30)},
+                     "safe": not (is_high_risk or domain_len > SUSPICIOUS_DOMAIN_LENGTH)},
                     {"part": "/" + self.target_url.split(self.target_domain)[-1]
                      if "/" in self.target_url else "", "label": "路徑", "safe": True},
                 ],

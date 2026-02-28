@@ -54,6 +54,8 @@ class PersuasionService:
             api_key=settings.featherless_api_key,
         )
         self.model = settings.featherless_model
+        self.temperature = settings.persuasion_temperature
+        self.max_tokens = settings.persuasion_max_tokens
 
     async def analyze(
         self, user_input: str, first_stage_report: dict[str, Any]
@@ -67,8 +69,8 @@ class PersuasionService:
                     {"role": "system", "content": PERSUASION_SYSTEM_PROMPT},
                     {"role": "user", "content": user_prompt},
                 ],
-                temperature=0.1,
-                max_tokens=1000,
+                temperature=self.temperature,
+                max_tokens=self.max_tokens,
                 response_format={"type": "json_object"},
             )
             content = resp.choices[0].message.content or "{}"

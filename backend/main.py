@@ -52,9 +52,9 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
 settings = get_settings()
 
 app = FastAPI(
-    title="ScoutNet API",
+    title=settings.app_title,
     description="兒童網路安全網址分析 API — 資安檢查 + AI 內容適齡分析",
-    version="2.0.0",
+    version=settings.app_version,
     lifespan=lifespan,
 )
 

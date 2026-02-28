@@ -10,14 +10,9 @@ from typing import Any
 import httpx
 from openai import AsyncOpenAI
 
-from config import Settings
+from config import Settings, UNSUITABLE_LABELS
 
 logger = logging.getLogger(__name__)
-
-UNSUITABLE_LABELS = frozenset([
-    "色情", "成人", "暴力", "血腥", "gore", "porn", "nsfw", "explicit",
-    "裸露", "不雅", "極端暴力", "恐怖",
-])
 
 
 def is_unsuitable_for_children(classification: dict[str, Any]) -> bool:
@@ -48,7 +43,7 @@ class ContentCheckerService:
         if not self._s.exa_api_key:
             return None, "EXA_API_KEY 未設定"
 
-        content, err, tag = await self._exa_contents(target_url, max_age_hours=24)
+        content, err, tag = await self._exa_contents(target_url)
         if content:
             return content, None
 
@@ -68,9 +63,14 @@ class ContentCheckerService:
     async def _exa_contents(
         self,
         target_url: str,
-        max_age_hours: int = 24,
-        livecrawl_timeout_ms: int | None = 25000,
+        max_age_hours: int | None = None,
+        livecrawl_timeout_ms: int | None = None,
     ) -> tuple[str | None, str | None, str | None]:
+        if max_age_hours is None:
+            max_age_hours = self._s.exa_max_age_hours
+        if livecrawl_timeout_ms is None:
+            livecrawl_timeout_ms = self._s.exa_livecrawl_timeout_ms
+
         headers = {"x-api-key": self._s.exa_api_key, "Content-Type": "application/json"}
         payload: dict[str, Any] = {"urls": [target_url], "text": True, "highlights": True}
         if max_age_hours is not None:
@@ -78,8 +78,10 @@ class ContentCheckerService:
         if livecrawl_timeout_ms is not None:
             payload["livecrawlTimeout"] = livecrawl_timeout_ms
 
-        async with httpx.AsyncClient(timeout=60) as client:
-            resp = await client.post("https://api.exa.ai/contents", headers=headers, json=payload)
+        async with httpx.AsyncClient(timeout=self._s.exa_timeout) as client:
+            resp = await client.post(
+                f"{self._s.exa_base_url}/contents", headers=headers, json=payload,
+            )
             resp.raise_for_status()
             data = resp.json()
 
@@ -94,8 +96,11 @@ class ContentCheckerService:
         return None, "Exa 未回傳任何內容", None
 
     async def _exa_search(
-        self, target_url: str, num_results: int = 5
+        self, target_url: str, num_results: int | None = None,
     ) -> tuple[str | None, str | None]:
+        if num_results is None:
+            num_results = self._s.exa_search_num_results
+
         headers = {"x-api-key": self._s.exa_api_key, "Content-Type": "application/json"}
         payload = {
             "query": target_url,
@@ -104,8 +109,10 @@ class ContentCheckerService:
             "contents": {"text": True, "summary": True},
         }
         try:
-            async with httpx.AsyncClient(timeout=60) as client:
-                resp = await client.post("https://api.exa.ai/search", headers=headers, json=payload)
+            async with httpx.AsyncClient(timeout=self._s.exa_timeout) as client:
+                resp = await client.post(
+                    f"{self._s.exa_base_url}/search", headers=headers, json=payload,
+                )
                 resp.raise_for_status()
                 data = resp.json()
             results = data.get("results", [])
@@ -141,7 +148,7 @@ class ContentCheckerService:
         self, target_url: str, page_content: str
     ) -> dict[str, Any]:
         """Classify whether the page is suitable for children (<18)."""
-        max_chars = 8000
+        max_chars = self._s.content_max_chars
         truncated = page_content[:max_chars] + "\n\n[... 內容已截斷 ...]" if len(page_content) > max_chars else page_content
 
         system_prompt = """你是一位關心兒童網路安全的專家。請根據提供的網頁 URL 與內容，判斷這個網頁**是否適合 18 歲以下兒童**瀏覽。
@@ -168,8 +175,8 @@ class ContentCheckerService:
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_content},
                 ],
-                temperature=0.1,
-                max_tokens=400,
+                temperature=self._s.content_classify_temperature,
+                max_tokens=self._s.content_classify_max_tokens,
                 response_format={"type": "json_object"},
             )
             content = resp.choices[0].message.content or "{}"

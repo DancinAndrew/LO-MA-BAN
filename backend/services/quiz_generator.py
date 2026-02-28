@@ -8,6 +8,8 @@ import re
 import logging
 from typing import Any
 
+from config import KID_FRIENDLY_REPLACEMENTS, KNOWN_BRAND_PATTERNS
+
 logger = logging.getLogger(__name__)
 
 
@@ -15,14 +17,7 @@ def _simplify_text(text: str, max_length: int = 150) -> str:
     if not text:
         return ""
     text = re.sub(r"\s+", " ", text.strip())
-    replacements = {
-        "釣魚網站": "騙人的假網站", "惡意軟體": "壞壞的程式",
-        "SSL 證書": "安全鎖", "頂級域名": "網址的尾巴",
-        "個資": "個人資料", "仿冒": "假裝成", "威脅情報": "安全檢查",
-        "色情": "不適合小朋友看的內容", "成人內容": "大人才能看的內容",
-        "暴力": "打打殺殺的畫面",
-    }
-    for old, new in replacements.items():
+    for old, new in KID_FRIENDLY_REPLACEMENTS.items():
         text = text.replace(old, new)
     if len(text) > max_length:
         text = text[: max_length - 3] + "..."
@@ -99,8 +94,7 @@ class QuizGenerator:
     def _fallback_quiz(self) -> dict[str, Any]:
         if self.risk_source == "content":
             return self._content_risk_quiz()
-        brands = ("paypa", "amazn", "app1e", "g0ogle", "allegro")
-        if any(b in self.target_domain.lower() for b in brands):
+        if any(b in self.target_domain.lower() for b in KNOWN_BRAND_PATTERNS):
             return self._brand_quiz()
         if self.target_tld.lower() in {"cfd", "xyz", "top", "rest"}:
             return self._tld_quiz()

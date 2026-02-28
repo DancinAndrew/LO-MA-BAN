@@ -126,6 +126,7 @@ class ThreatAnalysisService:
         self.model = settings.featherless_model
         self.temperature = settings.featherless_temperature
         self.max_tokens = settings.featherless_max_tokens
+        self.top_p = settings.featherless_top_p
 
     @staticmethod
     def _build_phishing_user_prompt(
@@ -316,7 +317,7 @@ URL: {target_url}
                 ],
                 temperature=self.temperature,
                 max_tokens=self.max_tokens,
-                top_p=0.9,
+                top_p=self.top_p,
                 response_format={"type": "json_object"},
             )
             content = resp.choices[0].message.content or ""
