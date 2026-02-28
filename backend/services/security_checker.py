@@ -12,7 +12,7 @@ from typing import Any
 
 import httpx
 
-from config import Config
+from config import Settings, RISK_WEIGHTS
 
 logger = logging.getLogger(__name__)
 
@@ -22,19 +22,20 @@ def _base64_url_id(url: str) -> str:
 
 
 class SecurityCheckerService:
-    def __init__(self) -> None:
-        self.timeout = Config.API_TIMEOUT
+    def __init__(self, settings: Settings) -> None:
+        self._s = settings
+        self.timeout = settings.api_timeout
 
     async def _check_virustotal(
         self, client: httpx.AsyncClient, target_url: str
     ) -> dict[str, Any]:
-        if not Config.VIRUSTOTAL_API_KEY:
+        if not self._s.virustotal_api_key:
             return {"source": "virustotal", "available": False, "reason": "API key not configured"}
         try:
             url_id = _base64_url_id(target_url)
             resp = await client.get(
-                f"{Config.VIRUSTOTAL_BASE_URL}/urls/{url_id}",
-                headers={"x-apikey": Config.VIRUSTOTAL_API_KEY, "Accept": "application/json"},
+                f"{self._s.virustotal_base_url}/urls/{url_id}",
+                headers={"x-apikey": self._s.virustotal_api_key, "Accept": "application/json"},
             )
             if resp.status_code == 404:
                 return {"source": "virustotal", "available": True, "found": False,
@@ -44,9 +45,9 @@ class SecurityCheckerService:
                 stats = attrs.get("last_analysis_stats", {})
                 mal = stats.get("malicious", 0)
                 sus = stats.get("suspicious", 0)
-                if mal > 3 or (mal + sus) > 5:
+                if mal > self._s.vt_malicious_critical or (mal + sus) > self._s.vt_total_critical:
                     risk = "critical"
-                elif mal > 0 or sus > 2:
+                elif mal > 0 or sus > self._s.vt_suspicious_warning:
                     risk = "warning"
                 elif sus > 0:
                     risk = "caution"
@@ -72,14 +73,14 @@ class SecurityCheckerService:
     async def _check_urlhaus(
         self, client: httpx.AsyncClient, target_url: str
     ) -> dict[str, Any]:
-        if not Config.URLHAUS_AUTH_KEY:
+        if not self._s.urlhaus_auth_key:
             return {"source": "urlhaus", "available": False, "reason": "Auth-Key not configured"}
         try:
             resp = await client.post(
-                "https://urlhaus-api.abuse.ch/v1/url/",
+                f"{self._s.urlhaus_base_url}/url/",
                 data={"url": target_url.strip().rstrip("/"), "format": "json"},
-                headers={"Auth-Key": Config.URLHAUS_AUTH_KEY,
-                         "User-Agent": "ScamAnalyzer/2.0", "Accept": "application/json"},
+                headers={"Auth-Key": self._s.urlhaus_auth_key,
+                         "User-Agent": self._s.user_agent, "Accept": "application/json"},
             )
             if resp.status_code == 200:
                 data = resp.json()
@@ -113,9 +114,9 @@ class SecurityCheckerService:
         try:
             encoded = base64.urlsafe_b64encode(target_url.encode()).decode().rstrip("=")
             resp = await client.post(
-                "https://api.phishtank.com/v2/phishtank/verify",
+                f"{self._s.phishtank_base_url}/verify",
                 data={"url": encoded, "format": "json"},
-                headers={"User-Agent": "ScamAnalyzer/2.0"},
+                headers={"User-Agent": self._s.user_agent},
             )
             if resp.status_code == 200:
                 data = resp.json()
@@ -132,12 +133,15 @@ class SecurityCheckerService:
     async def _check_google_safebrowsing(
         self, client: httpx.AsyncClient, target_url: str
     ) -> dict[str, Any]:
-        if not Config.GOOGLE_SAFE_BROWSING_API_KEY:
+        if not self._s.google_safe_browsing_api_key:
             return {"source": "google_safebrowsing", "available": False,
                     "reason": "API key not configured"}
         try:
             payload = {
-                "client": {"clientId": "scamanalyzer", "clientVersion": "2.0.0"},
+                "client": {
+                    "clientId": self._s.safebrowsing_client_id,
+                    "clientVersion": self._s.safebrowsing_client_version,
+                },
                 "threatInfo": {
                     "threatTypes": ["MALWARE", "SOCIAL_ENGINEERING",
                                     "UNWANTED_SOFTWARE", "POTENTIALLY_HARMFUL_APPLICATION"],
@@ -147,11 +151,11 @@ class SecurityCheckerService:
                 },
             }
             resp = await client.post(
-                "https://safebrowsing.googleapis.com/v4/threatMatches:find",
-                params={"key": Config.GOOGLE_SAFE_BROWSING_API_KEY},
+                f"{self._s.google_safe_browsing_base_url}/threatMatches:find",
+                params={"key": self._s.google_safe_browsing_api_key},
                 json=payload,
                 headers={"Content-Type": "application/json",
-                         "User-Agent": "ScamAnalyzer/2.0"},
+                         "User-Agent": self._s.user_agent},
             )
             if resp.status_code == 200:
                 matches = resp.json().get("matches", [])
@@ -172,9 +176,7 @@ class SecurityCheckerService:
             logger.error("Google Safe Browsing failed: %s", exc)
             return {"source": "google_safebrowsing", "available": False, "error": str(exc)}
 
-    @staticmethod
-    def _aggregate(results: list[dict[str, Any]]) -> dict[str, Any]:
-        weights = {"critical": 3, "warning": 2, "caution": 1, "safe": 0}
+    def _aggregate(self, results: list[dict[str, Any]]) -> dict[str, Any]:
         total_score = 0
         checked = 0
         critical_flags: list[dict[str, Any]] = []
@@ -185,7 +187,7 @@ class SecurityCheckerService:
                 continue
             checked += 1
             risk = r.get("risk_level", "safe")
-            total_score += weights.get(risk, 0)
+            total_score += RISK_WEIGHTS.get(risk, 0)
             if risk == "critical":
                 critical_flags.append({
                     "source": r["source"],
@@ -198,12 +200,12 @@ class SecurityCheckerService:
 
         if checked == 0:
             overall, confidence = "inconclusive", "low"
-        elif total_score >= 6 or len(critical_flags) >= 2:
+        elif total_score >= self._s.agg_critical_score or len(critical_flags) >= self._s.agg_critical_flags:
             overall = "critical"
             confidence = "high" if checked >= 3 else "medium"
-        elif total_score >= 3 or len(critical_flags) >= 1:
+        elif total_score >= self._s.agg_high_score or len(critical_flags) >= self._s.agg_high_flags:
             overall, confidence = "high", "medium"
-        elif total_score >= 1:
+        elif total_score >= self._s.agg_medium_score:
             overall, confidence = "medium", "medium"
         else:
             overall, confidence = "low", "high"
@@ -211,7 +213,7 @@ class SecurityCheckerService:
         return {
             "overall_risk": overall,
             "confidence": confidence,
-            "risk_score": min(total_score * 25, 100),
+            "risk_score": min(total_score * self._s.risk_score_multiplier, self._s.risk_score_max),
             "checked_sources": checked,
             "critical_flags": critical_flags,
             "warnings": warnings,

@@ -1,5 +1,5 @@
 """
-LLMAnalyzerService — async deep analysis via Featherless (OpenAI-compatible).
+ThreatAnalysisService — async deep analysis via Featherless (OpenAI-compatible).
 Supports phishing analysis AND content-risk analysis (child counselor persona).
 """
 from __future__ import annotations
@@ -10,7 +10,7 @@ from typing import Any
 
 from openai import AsyncOpenAI
 
-from config import Config
+from config import Settings
 
 logger = logging.getLogger(__name__)
 
@@ -117,17 +117,16 @@ CONTENT_RISK_SYSTEM_PROMPT = """\
 並生成創意選擇題（quiz 欄位），幫助小朋友學習「如何分辨不適當的網站」或「遇到不當內容該怎麼辦」。格式與資安分析相同。"""
 
 
-class LLMAnalyzerService:
-    def __init__(self) -> None:
+class ThreatAnalysisService:
+    def __init__(self, settings: Settings) -> None:
         self._client = AsyncOpenAI(
-            base_url=Config.FEATHERLESS_BASE_URL,
-            api_key=Config.FEATHERLESS_API_KEY,
+            base_url=settings.featherless_base_url,
+            api_key=settings.featherless_api_key,
         )
-        self.model = Config.FEATHERLESS_MODEL
-        self.temperature = Config.FEATHERLESS_TEMPERATURE
-        self.max_tokens = Config.FEATHERLESS_MAX_TOKENS
-
-    # ── Prompt builders ──
+        self.model = settings.featherless_model
+        self.temperature = settings.featherless_temperature
+        self.max_tokens = settings.featherless_max_tokens
+        self.top_p = settings.featherless_top_p
 
     @staticmethod
     def _build_phishing_user_prompt(
@@ -217,8 +216,6 @@ URL: {target_url}
 
 請輸出結構化 JSON，包含 why_unsafe、recommendations、quiz 等，用兒童輔導員的語氣。"""
 
-    # ── Fallbacks ──
-
     @staticmethod
     def _fallback_phishing(security_results: dict[str, Any]) -> dict[str, Any]:
         risk = security_results.get("overall_risk", "inconclusive")
@@ -276,8 +273,6 @@ URL: {target_url}
             "fallback_mode": True,
         }
 
-    # ── Public API ──
-
     async def analyze_phishing(
         self, target_url: str, security_results: dict[str, Any]
     ) -> dict[str, Any]:
@@ -322,7 +317,7 @@ URL: {target_url}
                 ],
                 temperature=self.temperature,
                 max_tokens=self.max_tokens,
-                top_p=0.9,
+                top_p=self.top_p,
                 response_format={"type": "json_object"},
             )
             content = resp.choices[0].message.content or ""

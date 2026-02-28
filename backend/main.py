@@ -3,41 +3,79 @@ from __future__ import annotations
 
 import logging
 import sys
-
-from dotenv import load_dotenv
-
-load_dotenv()
+from contextlib import asynccontextmanager
+from collections.abc import AsyncIterator
 
 from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from config import Config
+from config import get_settings
 from schemas.responses import HealthResponse
-from routers.analyze import router as analyze_router
-from routers.second_stage import router as second_stage_router
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[logging.StreamHandler(sys.stderr)],
+from routers.scan import router as scan_router
+from routers.persuade import router as persuade_router
+from middleware import RequestIDMiddleware, RequestIDFilter
+from exceptions import (
+    http_exception_handler,
+    validation_exception_handler,
+    unhandled_exception_handler,
 )
+
+# ── Structured logging with request_id ──
+
+_rid_filter = RequestIDFilter()
+_formatter = logging.Formatter(
+    "%(asctime)s [%(request_id)s] %(levelname)s %(name)s — %(message)s"
+)
+_handler = logging.StreamHandler(sys.stderr)
+_handler.setFormatter(_formatter)
+_handler.addFilter(_rid_filter)
+logging.basicConfig(level=logging.INFO, handlers=[_handler])
+
+
+# ── Lifespan: validate config on startup ──
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+    settings = get_settings()
+    errors = settings.validate_required()
+    if errors:
+        for e in errors:
+            logging.getLogger(__name__).warning("Config warning: %s", e)
+    yield
+
+
+# ── App factory ──
+
+settings = get_settings()
 
 app = FastAPI(
-    title="ScoutNet API",
+    title=settings.app_title,
     description="兒童網路安全網址分析 API — 資安檢查 + AI 內容適齡分析",
-    version="2.0.0",
+    version=settings.app_version,
+    lifespan=lifespan,
 )
 
+# Middleware (order matters — outermost first)
+app.add_middleware(RequestIDMiddleware)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.include_router(analyze_router)
-app.include_router(second_stage_router)
+# Exception handlers
+app.add_exception_handler(StarletteHTTPException, http_exception_handler)  # type: ignore[arg-type]
+app.add_exception_handler(RequestValidationError, validation_exception_handler)  # type: ignore[arg-type]
+app.add_exception_handler(Exception, unhandled_exception_handler)  # type: ignore[arg-type]
+
+# Routers
+app.include_router(scan_router)
+app.include_router(persuade_router)
 
 
 @app.get("/health", response_model=HealthResponse, tags=["system"])
@@ -58,7 +96,7 @@ if __name__ == "__main__":
 
     uvicorn.run(
         "main:app",
-        host=host,
-        port=port,
+        host=settings.host,
+        port=settings.port,
         reload=True,
     )
