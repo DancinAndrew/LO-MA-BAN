@@ -23,9 +23,13 @@ const REASONS = [
 export type ScoutNetProps = {
   /** 從偵測模組或擴充腳本傳入的網站資料；不傳則用預設展示資料 */
   siteData?: SiteData | null;
+  /** 在擴充警告頁時：點「Leave site」會呼叫此 callback，回到上一頁 */
+  onLeaveSite?: () => void;
+  /** 在擴充警告頁時：點「I still want to go in」會呼叫此 callback，前往風險網站 */
+  onProceedToUrl?: () => void;
 };
 
-const ScoutNet: React.FC<ScoutNetProps> = ({ siteData: siteDataProp }) => {
+const ScoutNet: React.FC<ScoutNetProps> = ({ siteData: siteDataProp, onLeaveSite, onProceedToUrl }) => {
   const [currentStep, setCurrentStep] = useState<Step>('rating');
   const [conversation, setConversation] = useState<ConversationEntry[]>([]);
   const [selectedReasons, setSelectedReasons] = useState<string[]>([]);
@@ -272,14 +276,20 @@ const ScoutNet: React.FC<ScoutNetProps> = ({ siteData: siteDataProp }) => {
           <button
             type="button"
             className="chat-reply chat-reply--primary"
-            onClick={() => resetFlow()}
+            onClick={() => {
+              onLeaveSite?.()
+              resetFlow()
+            }}
           >
             Leave site
           </button>
           <button
             type="button"
             className="chat-reply chat-reply--secondary"
-            onClick={() => sendReply('I still want to go in', 'enter')}
+            onClick={() => {
+              if (onProceedToUrl) onProceedToUrl()
+              else sendReply('I still want to go in', 'enter')
+            }}
           >
             I still want to go in
           </button>

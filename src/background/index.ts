@@ -109,14 +109,14 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   }
 })
 
-/** 監聽分頁網址變更，偵測到風險網站時寫入 session 並開啟擴充警告頁 */
-chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-  const url = changeInfo.url ?? tab.url
-  if (!url || !tab.id) return
-  // 僅在網址已載入完成時偵測，避免重複觸發
-  if (changeInfo.status !== 'complete') return
-  // 只處理 http/https
+/** 導向「開始前」就攔截，避免先進入風險網站再跳警告頁（網址列、書籤等） */
+chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
+  if (details.frameId !== 0) return
+  const url = details.url
+  const tabId = details.tabId
+  if (!url || tabId < 0) return
   if (!isHttpUrl(url)) return
+  if (url.startsWith(chrome.runtime.getURL(''))) return
 
   try {
     const { [SESSION_KEY_BYPASS]: bypass } = await chrome.storage.session.get(SESSION_KEY_BYPASS)
@@ -138,6 +138,6 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     })
     await redirectTabToWarningPage(tabId)
   } catch (e) {
-    console.warn('[LO-MA-BAN] background detection error', e)
+    console.warn('[LO-MA-BAN] onBeforeNavigate detection error', e)
   }
 })

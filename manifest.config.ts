@@ -4,7 +4,7 @@ export default defineManifest({
   manifest_version: 3,
   name: 'LO-MA-BAN',
   description: 'Chrome extension scaffold powered by Vite + CRXJS + React + TypeScript.',
-  version: '0.3.0',
+  version: '0.4.0',
   action: {
     default_popup: 'src/popup/index.html',
   },
@@ -19,7 +19,7 @@ export default defineManifest({
       run_at: 'document_idle',
     },
   ],
-  permissions: ['storage', 'activeTab', 'tabs'],
+  permissions: ['storage', 'activeTab', 'tabs', 'webNavigation'],
   icons: {
     '16': 'icons/icon-16.png',
     '48': 'icons/icon-48.png',
