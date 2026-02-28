@@ -1,13 +1,17 @@
-"""Centralised application settings backed by pydantic-settings."""
+"""Centralised application settings from environment (python-dotenv + os.environ)."""
 from __future__ import annotations
 
 import json
+import os
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from dotenv import load_dotenv
+
+# Load .env next to this file
+_env_path = Path(__file__).resolve().parent / ".env"
+load_dotenv(_env_path, encoding="utf-8")
 
 # ── Module-level constants (not env-backed, but centralised) ──
 
@@ -42,88 +46,106 @@ RISK_WEIGHTS: dict[str, int] = {
 }
 
 
-class Settings(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_file=Path(__file__).resolve().parent / ".env",
-        env_file_encoding="utf-8",
-        extra="ignore",
-    )
+def _env(key: str, default: str = "") -> str:
+    return os.environ.get(key, default).strip()
 
-    # --- Featherless AI (OpenAI-compatible) ---
-    featherless_base_url: str = "https://api.featherless.ai/v1"
-    featherless_api_key: str = ""
-    featherless_model: str = "Qwen/Qwen2.5-7B-Instruct"
-    featherless_temperature: float = 0.1
-    featherless_max_tokens: int = 2000
-    featherless_top_p: float = 0.9
 
-    # --- LLM per-task overrides ---
-    content_classify_temperature: float = 0.1
-    content_classify_max_tokens: int = 400
-    persuasion_temperature: float = 0.1
-    persuasion_max_tokens: int = 1000
+def _env_int(key: str, default: int) -> int:
+    try:
+        return int(os.environ.get(key, str(default)))
+    except ValueError:
+        return default
 
-    # --- Exa AI ---
-    exa_api_key: str = ""
-    exa_base_url: str = "https://api.exa.ai"
-    exa_timeout: int = 60
-    exa_max_age_hours: int = 24
-    exa_livecrawl_timeout_ms: int = 25000
-    exa_search_num_results: int = 5
 
-    # --- Content analysis ---
-    content_max_chars: int = 8000
+def _env_float(key: str, default: float) -> float:
+    try:
+        return float(os.environ.get(key, str(default)))
+    except ValueError:
+        return default
 
-    # --- Security APIs ---
-    api_timeout: int = 30
 
-    virustotal_api_key: str = ""
-    virustotal_base_url: str = "https://www.virustotal.com/api/v3"
+def _parse_cors_origins(v: str) -> list[str]:
+    if not v:
+        return ["*"]
+    if v.strip().startswith("["):
+        try:
+            return json.loads(v)
+        except json.JSONDecodeError:
+            pass
+    return [s.strip() for s in v.split(",") if s.strip()]
 
-    urlhaus_auth_key: str = ""
-    urlhaus_base_url: str = "https://urlhaus-api.abuse.ch/v1"
 
-    phishtank_api_key: str = ""
-    phishtank_base_url: str = "https://api.phishtank.com/v2/phishtank"
+class Settings:
+    """Settings loaded from environment (no pydantic_settings dependency)."""
 
-    google_safe_browsing_api_key: str = ""
-    google_safe_browsing_base_url: str = "https://safebrowsing.googleapis.com/v4"
+    def __init__(self) -> None:
+        # --- Featherless AI (OpenAI-compatible) ---
+        self.featherless_base_url = _env("FEATHERLESS_BASE_URL", "https://api.featherless.ai/v1")
+        self.featherless_api_key = _env("FEATHERLESS_API_KEY", "")
+        self.featherless_model = _env("FEATHERLESS_MODEL", "Qwen/Qwen2.5-7B-Instruct")
+        self.featherless_temperature = _env_float("FEATHERLESS_TEMPERATURE", "0.1")
+        self.featherless_max_tokens = _env_int("FEATHERLESS_MAX_TOKENS", 2000)
+        self.featherless_top_p = _env_float("FEATHERLESS_TOP_P", "0.9")
 
-    # --- VirusTotal classification thresholds ---
-    vt_malicious_critical: int = 3
-    vt_total_critical: int = 5
-    vt_suspicious_warning: int = 2
+        # --- LLM per-task overrides ---
+        self.content_classify_temperature = _env_float("CONTENT_CLASSIFY_TEMPERATURE", "0.1")
+        self.content_classify_max_tokens = _env_int("CONTENT_CLASSIFY_MAX_TOKENS", 400)
+        self.persuasion_temperature = _env_float("PERSUASION_TEMPERATURE", "0.1")
+        self.persuasion_max_tokens = _env_int("PERSUASION_MAX_TOKENS", 1000)
 
-    # --- Security aggregation thresholds ---
-    agg_critical_score: int = 6
-    agg_critical_flags: int = 2
-    agg_high_score: int = 3
-    agg_high_flags: int = 1
-    agg_medium_score: int = 1
-    risk_score_multiplier: int = 25
-    risk_score_max: int = 100
+        # --- Exa AI ---
+        self.exa_api_key = _env("EXA_API_KEY", "")
+        self.exa_base_url = _env("EXA_BASE_URL", "https://api.exa.ai")
+        self.exa_timeout = _env_int("EXA_TIMEOUT", 60)
+        self.exa_max_age_hours = _env_int("EXA_MAX_AGE_HOURS", 24)
+        self.exa_livecrawl_timeout_ms = _env_int("EXA_LIVECRAWL_TIMEOUT_MS", 25000)
+        self.exa_search_num_results = _env_int("EXA_SEARCH_NUM_RESULTS", 5)
 
-    # --- App metadata ---
-    app_title: str = "ScoutNet API"
-    app_version: str = "2.0.0"
-    user_agent: str = "ScamAnalyzer/2.0"
-    safebrowsing_client_id: str = "scamanalyzer"
-    safebrowsing_client_version: str = "2.0.0"
+        # --- Content analysis ---
+        self.content_max_chars = _env_int("CONTENT_MAX_CHARS", 8000)
 
-    # --- Server ---
-    HOST: str = os.getenv("HOST", "0.0.0.0")
-    PORT: int = int(os.getenv("PORT", "8001"))
-# --- CORS ---
-    cors_origins: list[str] = Field(default=["*"])
+        # --- Security APIs ---
+        self.api_timeout = _env_int("API_TIMEOUT", 30)
+        self.virustotal_api_key = _env("VIRUSTOTAL_API_KEY", "")
+        self.virustotal_base_url = _env("VIRUSTOTAL_BASE_URL", "https://www.virustotal.com/api/v3")
+        self.urlhaus_auth_key = _env("URLHAUS_AUTH_KEY", "")
+        self.urlhaus_base_url = _env("URLHAUS_BASE_URL", "https://urlhaus-api.abuse.ch/v1")
+        self.phishtank_api_key = _env("PHISHTANK_API_KEY", "")
+        self.phishtank_base_url = _env("PHISHTANK_BASE_URL", "https://api.phishtank.com/v2/phishtank")
+        self.google_safe_browsing_api_key = _env("GOOGLE_SAFE_BROWSING_API_KEY", "")
+        self.google_safe_browsing_base_url = _env(
+            "GOOGLE_SAFE_BROWSING_BASE_URL", "https://safebrowsing.googleapis.com/v4"
+        )
 
-    @field_validator("cors_origins", mode="before")
-    @classmethod
-    def _parse_cors_origins(cls, v: Any) -> list[str]:
-        if isinstance(v, str):
-            if v.startswith("["):
-                return json.loads(v)
-            return [s.strip() for s in v.split(",") if s.strip()]
-        return v
+        # --- VirusTotal thresholds ---
+        self.vt_malicious_critical = _env_int("VT_MALICIOUS_CRITICAL", 3)
+        self.vt_total_critical = _env_int("VT_TOTAL_CRITICAL", 5)
+        self.vt_suspicious_warning = _env_int("VT_SUSPICIOUS_WARNING", 2)
+
+        # --- Security aggregation ---
+        self.agg_critical_score = _env_int("AGG_CRITICAL_SCORE", 6)
+        self.agg_critical_flags = _env_int("AGG_CRITICAL_FLAGS", 2)
+        self.agg_high_score = _env_int("AGG_HIGH_SCORE", 3)
+        self.agg_high_flags = _env_int("AGG_HIGH_FLAGS", 1)
+        self.agg_medium_score = _env_int("AGG_MEDIUM_SCORE", 1)
+        self.risk_score_multiplier = _env_int("RISK_SCORE_MULTIPLIER", 25)
+        self.risk_score_max = _env_int("RISK_SCORE_MAX", 100)
+
+        # --- App metadata ---
+        self.app_title = _env("APP_TITLE", "ScoutNet API")
+        self.app_version = _env("APP_VERSION", "2.0.0")
+        self.user_agent = _env("USER_AGENT", "ScamAnalyzer/2.0")
+        self.safebrowsing_client_id = _env("SAFEBROWSING_CLIENT_ID", "scamanalyzer")
+        self.safebrowsing_client_version = _env("SAFEBROWSING_CLIENT_VERSION", "2.0.0")
+
+        # --- Server (lowercase for compatibility with main.py) ---
+        self.HOST = _env("HOST", "0.0.0.0")
+        self.PORT = _env_int("PORT", 8001)
+        self.host = self.HOST
+        self.port = self.PORT
+
+        # --- CORS ---
+        self.cors_origins = _parse_cors_origins(_env("CORS_ORIGINS", "*"))
 
     def validate_required(self) -> list[str]:
         errors: list[str] = []
