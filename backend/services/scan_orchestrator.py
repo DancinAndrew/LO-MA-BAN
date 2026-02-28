@@ -93,21 +93,7 @@ class ScanOrchestrator:
         content_classification: dict[str, Any] | None = None
         risk_source = "none"
 
-        should_call_phishing_llm = (
-            overall_risk in ("critical", "high", "medium") or force_deep_analysis
-        )
-
-        if should_call_phishing_llm:
-            content_task.cancel()
-            risk_source = "phishing"
-            try:
-                llm_analysis = await self._threat_analyzer.analyze_phishing(
-                    target_url, security_results
-                )
-            except Exception:
-                logger.exception("LLM phishing analysis failed")
-                llm_analysis = ThreatAnalysisService._fallback_phishing(security_results)
-        elif _is_known_nsfw_domain(target_url):
+        if _is_known_nsfw_domain(target_url):
             content_task.cancel()
             risk_source = "content"
             nsfw_classification = {
@@ -120,6 +106,16 @@ class ScanOrchestrator:
             content_classification = nsfw_classification
             llm_analysis = ThreatAnalysisService._fallback_content_risk(nsfw_classification)
             logger.info("Known NSFW domain detected, skipping LLM: %s", target_url)
+        elif overall_risk in ("critical", "high", "medium") or force_deep_analysis:
+            content_task.cancel()
+            risk_source = "phishing"
+            try:
+                llm_analysis = await self._threat_analyzer.analyze_phishing(
+                    target_url, security_results
+                )
+            except Exception:
+                logger.exception("LLM phishing analysis failed")
+                llm_analysis = ThreatAnalysisService._fallback_phishing(security_results)
         else:
             try:
                 content, content_err = await content_task
