@@ -95,13 +95,14 @@ class SecurityCheckerService:
                         "threat_type": info.get("threat"),
                         "tags": info.get("tags", []),
                         "date_added": info.get("date_added"),
+                        "reporter": info.get("reporter"),
                         "details": {"host": info.get("host"),
                                     "status": info.get("url_status"),
                                     "blacklists": info.get("blacklists", {})},
                     }
                 return {"source": "urlhaus", "available": True, "found": False, "query_status": status}
             return {"source": "urlhaus", "available": True, "found": False,
-                    "http_status": resp.status_code}
+                    "http_status": resp.status_code, "error_detail": resp.text[:100]}
         except Exception as exc:
             logger.error("URLhaus request failed: %s", exc)
             return {"source": "urlhaus", "available": False, "error": str(exc)}
@@ -149,19 +150,24 @@ class SecurityCheckerService:
                 "https://safebrowsing.googleapis.com/v4/threatMatches:find",
                 params={"key": Config.GOOGLE_SAFE_BROWSING_API_KEY},
                 json=payload,
+                headers={"Content-Type": "application/json",
+                         "User-Agent": "ScamAnalyzer/2.0"},
             )
             if resp.status_code == 200:
                 matches = resp.json().get("matches", [])
                 if matches:
                     threats = [{"threat_type": m.get("threatType"),
-                                "platform": m.get("platformType")} for m in matches]
+                                "platform": m.get("platformType"),
+                                "cache_duration": m.get("cacheDuration")} for m in matches]
                     return {"source": "google_safebrowsing", "available": True,
                             "found": True, "risk_level": "critical",
                             "threats": threats, "match_count": len(matches), "details": matches}
                 return {"source": "google_safebrowsing", "available": True, "found": False,
-                        "message": "No threats found"}
+                        "message": "No threats found in Google Safe Browsing database"}
+            logger.error("Google SB HTTP %s: %s", resp.status_code, resp.text[:200])
             return {"source": "google_safebrowsing", "available": True,
-                    "error": f"HTTP {resp.status_code}"}
+                    "error": f"HTTP {resp.status_code}",
+                    "details": resp.text[:200]}
         except Exception as exc:
             logger.error("Google Safe Browsing failed: %s", exc)
             return {"source": "google_safebrowsing", "available": False, "error": str(exc)}

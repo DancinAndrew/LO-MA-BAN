@@ -2,7 +2,7 @@
 name = "scoutnet-backend"
 version = "2.0.0"
 description = "ScoutNet backend API — security check + AI content-safety analysis for children"
-requires-python = ">=3.9"
+requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.115.0",
     "uvicorn[standard]>=0.34.0",

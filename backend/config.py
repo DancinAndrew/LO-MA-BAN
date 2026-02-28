@@ -34,9 +34,13 @@ class Config:
     URLHAUS_AUTH_KEY: str = os.getenv("URLHAUS_AUTH_KEY", "")
 
     PHISHTANK_API_KEY: str = os.getenv("PHISHTANK_API_KEY", "")
+    PHISHTANK_BASE_URL: str = "https://checkurl.phishtank.com/checkurl"
 
     GOOGLE_SAFE_BROWSING_API_KEY: str = os.getenv(
         "GOOGLE_SAFE_BROWSING_API_KEY", ""
+    )
+    GOOGLE_SAFE_BROWSING_BASE_URL: str = (
+        "https://safebrowsing.googleapis.com/v4"
     )
 
     # --- Server ---
