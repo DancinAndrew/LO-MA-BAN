@@ -5,9 +5,11 @@ import asyncio
 import logging
 from datetime import datetime, timezone
 from typing import Any, Callable
+from urllib.parse import urlparse
 
 from fastapi import HTTPException
 
+from config import KNOWN_NSFW_DOMAINS, UNSUITABLE_LABELS
 from schemas.responses import ScanResponse
 from services.content_checker import ContentCheckerService, is_unsuitable_for_children
 from services.report_generator import ReportGeneratorService
@@ -15,6 +17,31 @@ from services.security_checker import SecurityCheckerService
 from services.threat_analysis import ThreatAnalysisService
 
 logger = logging.getLogger(__name__)
+
+
+def _is_known_nsfw_domain(url: str) -> bool:
+    """Check if the URL belongs to a known NSFW domain."""
+    try:
+        hostname = urlparse(url).hostname or ""
+        hostname = hostname.lower().removeprefix("www.")
+        if hostname in KNOWN_NSFW_DOMAINS:
+            return True
+        parts = hostname.split(".")
+        if len(parts) > 2:
+            root = ".".join(parts[-2:])
+            return root in KNOWN_NSFW_DOMAINS
+    except Exception:
+        pass
+    return False
+
+
+def _content_has_nsfw_keywords(content: str, threshold: int = 5) -> bool:
+    """Quick keyword scan: if content has many NSFW keyword hits, it's obviously unsafe."""
+    if not content:
+        return False
+    lower = content[:3000].lower()
+    hits = sum(1 for kw in UNSUITABLE_LABELS if kw in lower)
+    return hits >= threshold
 
 
 class ScanOrchestrator:
@@ -80,31 +107,49 @@ class ScanOrchestrator:
             except Exception:
                 logger.exception("LLM phishing analysis failed")
                 llm_analysis = ThreatAnalysisService._fallback_phishing(security_results)
+        elif _is_known_nsfw_domain(target_url):
+            content_task.cancel()
+            risk_source = "content"
+            nsfw_classification = {
+                "labels": ["成人內容", "色情"],
+                "primary_label": "成人內容",
+                "confidence": "high",
+                "is_unsuitable_for_children": True,
+                "explanation": "此網站為已知的成人內容網站",
+            }
+            content_classification = nsfw_classification
+            llm_analysis = ThreatAnalysisService._fallback_content_risk(nsfw_classification)
+            logger.info("Known NSFW domain detected, skipping LLM: %s", target_url)
         else:
             try:
                 content, content_err = await content_task
             except Exception:
                 content, content_err = None, "Content fetch failed"
 
-            if content:
-                content_classification = await self._content_checker.classify_safety(
+            if content and _content_has_nsfw_keywords(content):
+                risk_source = "content"
+                kw_classification = {
+                    "labels": ["不當內容"],
+                    "primary_label": "不當內容",
+                    "confidence": "high",
+                    "is_unsuitable_for_children": True,
+                    "explanation": "網頁內容含有大量不適合兒童的關鍵字",
+                }
+                content_classification = kw_classification
+                llm_analysis = ThreatAnalysisService._fallback_content_risk(kw_classification)
+                logger.info("NSFW keywords detected in content, skipping LLM: %s", target_url)
+            elif content:
+                combined = await self._content_checker.classify_and_analyze(
                     target_url, content
                 )
                 unsuitable = (
-                    content_classification.get("is_unsuitable_for_children")
-                    or is_unsuitable_for_children(content_classification)
+                    combined.get("is_unsuitable_for_children")
+                    or is_unsuitable_for_children(combined)
                 )
+                content_classification = combined
                 if unsuitable:
                     risk_source = "content"
-                    try:
-                        llm_analysis = await self._threat_analyzer.analyze_content_risk(
-                            target_url, content, content_classification
-                        )
-                    except Exception:
-                        logger.exception("LLM content analysis failed")
-                        llm_analysis = ThreatAnalysisService._fallback_content_risk(
-                            content_classification
-                        )
+                    llm_analysis = combined
             else:
                 logger.info("Could not fetch content: %s", content_err)
 

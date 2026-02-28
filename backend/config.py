@@ -45,6 +45,16 @@ RISK_WEIGHTS: dict[str, int] = {
     "critical": 3, "warning": 2, "caution": 1, "safe": 0,
 }
 
+KNOWN_NSFW_DOMAINS: frozenset[str] = frozenset([
+    "pornhub.com", "xvideos.com", "xnxx.com", "xhamster.com",
+    "redtube.com", "youporn.com", "tube8.com", "spankbang.com",
+    "brazzers.com", "bangbros.com", "onlyfans.com", "chaturbate.com",
+    "livejasmin.com", "stripchat.com", "bongacams.com",
+    "hentai.tv", "nhentai.net", "hanime.tv", "rule34.xxx",
+    "motherless.com", "efukt.com", "bestgore.com", "liveleak.com",
+    "theync.com", "crazyshit.com", "kaotic.com",
+])
+
 
 def _env(key: str, default: str = "") -> str:
     return os.environ.get(key, default).strip()
@@ -84,7 +94,7 @@ class Settings:
         self.featherless_api_key = _env("FEATHERLESS_API_KEY", "")
         self.featherless_model = _env("FEATHERLESS_MODEL", "Qwen/Qwen2.5-7B-Instruct")
         self.featherless_temperature = _env_float("FEATHERLESS_TEMPERATURE", "0.1")
-        self.featherless_max_tokens = _env_int("FEATHERLESS_MAX_TOKENS", 2000)
+        self.featherless_max_tokens = _env_int("FEATHERLESS_MAX_TOKENS", 600)
         self.featherless_top_p = _env_float("FEATHERLESS_TOP_P", "0.9")
 
         # --- LLM per-task overrides ---
@@ -98,11 +108,11 @@ class Settings:
         self.exa_base_url = _env("EXA_BASE_URL", "https://api.exa.ai")
         self.exa_timeout = _env_int("EXA_TIMEOUT", 60)
         self.exa_max_age_hours = _env_int("EXA_MAX_AGE_HOURS", 24)
-        self.exa_livecrawl_timeout_ms = _env_int("EXA_LIVECRAWL_TIMEOUT_MS", 25000)
+        self.exa_livecrawl_timeout_ms = _env_int("EXA_LIVECRAWL_TIMEOUT_MS", 10000)
         self.exa_search_num_results = _env_int("EXA_SEARCH_NUM_RESULTS", 5)
 
         # --- Content analysis ---
-        self.content_max_chars = _env_int("CONTENT_MAX_CHARS", 8000)
+        self.content_max_chars = _env_int("CONTENT_MAX_CHARS", 3000)
 
         # --- Security APIs ---
         self.api_timeout = _env_int("API_TIMEOUT", 30)
