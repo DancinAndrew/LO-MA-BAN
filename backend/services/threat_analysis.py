@@ -204,7 +204,7 @@ class ThreatAnalysisService:
         labels = content_classification.get("labels", [])
         primary = content_classification.get("primary_label", "不明")
         explanation = content_classification.get("explanation", "")
-        content_preview = (page_content[:2000] + "...") if len(page_content) > 2000 else page_content
+        content_preview = (page_content[:1000] + "...") if len(page_content) > 1000 else page_content
 
         return f"""\
 請分析以下網頁的「內容適齡性」：

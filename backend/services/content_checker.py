@@ -188,3 +188,60 @@ class ContentCheckerService:
         except Exception as exc:
             logger.error("Content classification failed: %s", exc)
             return {"labels": [], "primary_label": "不明", "is_unsuitable_for_children": False, "error": str(exc)}
+
+    async def classify_and_analyze(
+        self, target_url: str, page_content: str
+    ) -> dict[str, Any]:
+        """Single LLM call: classify suitability AND generate analysis."""
+        max_chars = self._s.content_max_chars
+        truncated = page_content[:max_chars] + "\n..." if len(page_content) > max_chars else page_content
+
+        system_prompt = """\
+你是兒童網路安全專家。判斷網頁是否適合 18 歲以下兒童，並提供分析。
+
+**規則：每個句子只說一次，禁止重複。所有文字欄位限 100 字以內。**
+
+輸出 JSON：
+{
+  "is_unsuitable_for_children": true/false,
+  "labels": ["標籤1", "標籤2"],
+  "primary_label": "主要標籤",
+  "confidence": "high/medium/low",
+  "explanation": "50字內說明",
+  "risk_level": "high/medium/low",
+  "risk_score": 0-100,
+  "threat_summary": "一句話總結(30字內)",
+  "evidence_analysis": ["證據1(30字內)", "證據2"],
+  "why_unsafe": "為什麼不適合兒童(100字內，不重複)",
+  "content_risk_type": "色情/暴力/其他/安全",
+  "user_warnings": ["警告1"],
+  "recommendations": ["建議1", "建議2"]
+}"""
+
+        user_content = f"URL: {target_url}\n\n網頁內容：\n---\n{truncated}\n---"
+
+        try:
+            resp = await self._openai.chat.completions.create(
+                model=self._s.featherless_model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_content},
+                ],
+                temperature=self._s.content_classify_temperature,
+                max_tokens=600,
+                frequency_penalty=1.2,
+                presence_penalty=0.6,
+                response_format={"type": "json_object"},
+            )
+            content = resp.choices[0].message.content or "{}"
+            result: dict[str, Any] = json.loads(content)
+            result["is_unsuitable_for_children"] = result.get(
+                "is_unsuitable_for_children", is_unsuitable_for_children(result)
+            )
+            return result
+        except Exception as exc:
+            logger.error("Classify-and-analyze failed: %s", exc)
+            return {
+                "labels": [], "primary_label": "不明",
+                "is_unsuitable_for_children": False, "error": str(exc),
+            }
