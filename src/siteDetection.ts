@@ -24,6 +24,19 @@ export type SiteData = {
   warnings: string[];
 };
 
+/** 僅對這些網址或 host 回傳高風險（用來測試 ScoutNet 警示）；其餘一律 low */
+const RISKY_TEST_HOSTS = ['paypa1.com', 'paypa1.example.com', 'evil-phishing.test']
+
+function isTestRiskyUrl(url: string): boolean {
+  try {
+    const u = new URL(url)
+    const host = u.hostname.toLowerCase()
+    return RISKY_TEST_HOSTS.some((h) => host === h || host.endsWith('.' + h))
+  } catch {
+    return false
+  }
+}
+
 /**
  * 取得目前網址的偵測結果。
  * 整合時請在此改為：
@@ -31,21 +44,30 @@ export type SiteData = {
  * - 或 fetch 你的後端 API → 回傳
  */
 export async function getSiteData(url?: string): Promise<SiteData> {
-  // TODO: 替換成實際偵測邏輯
-  // 例如：const tabUrl = url ?? (await getCurrentTabUrl());
-  // 然後呼叫你的偵測 API 或本地規則
+  const targetUrl = url ?? ''
+  const isRisky = targetUrl ? isTestRiskyUrl(targetUrl) : false
 
-  // 目前回傳範例資料（開發/展示用）
+  if (isRisky) {
+    return {
+      currentUrl: targetUrl,
+      correctUrl: 'paypal.com',
+      riskScore: '2/10',
+      riskLevel: 'high',
+      warnings: [
+        'URL typo (paypa1.com is not paypal.com)',
+        'Suddenly asks for password',
+        'No HTTPS certificate',
+      ],
+    }
+  }
+
+  // 預設：安全，不擋
   return {
-    currentUrl: url ?? 'paypa1.com',
-    correctUrl: 'paypal.com',
-    riskScore: '2/10',
-    riskLevel: 'high',
-    warnings: [
-      'URL typo (paypa1.com is not paypal.com)',
-      'Suddenly asks for password',
-      'No HTTPS certificate',
-    ],
+    currentUrl: targetUrl || 'https://example.com',
+    correctUrl: null,
+    riskScore: '10/10',
+    riskLevel: 'low',
+    warnings: [],
   };
 }
 
