@@ -4,7 +4,7 @@ export default defineManifest({
   manifest_version: 3,
   name: 'LO-MA-BAN',
   description: 'Chrome extension scaffold powered by Vite + CRXJS + React + TypeScript.',
-  version: '0.2.0',
+  version: '0.3.0',
   action: {
     default_popup: 'src/popup/index.html',
   },
