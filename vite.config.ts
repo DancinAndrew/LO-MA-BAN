@@ -5,6 +5,13 @@ import manifest from './manifest.config'
 
 export default defineConfig({
   plugins: [react(), crx({ manifest })],
+  build: {
+    rollupOptions: {
+      input: {
+        warning: 'src/warning/index.html',
+      },
+    },
+  },
   server: {
     cors: {
       origin: [/chrome-extension:\/\//],
