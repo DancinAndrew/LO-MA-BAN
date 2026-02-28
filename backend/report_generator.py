@@ -32,7 +32,7 @@ class ReportGenerator:
         "low": {"icon": "❓", "label": "不太確定"}
     }
     
-    # 🧒 兒童友善風險描述
+    # 🧒 兒童友善風險描述（資安/釣魚）
     KID_RISK_TEXT = {
         "critical": "🚨 這個網站很可能是騙人的，千萬不要點進去！",
         "high": "⚠️ 這個網站看起來怪怪的，建議不要訪問",
@@ -40,11 +40,27 @@ class ReportGenerator:
         "low": "🙂 這個網站看起來還好，但上網還是要保持警覺喔",
         "inconclusive": "❓ 資訊不足，無法判斷，建議用其他工具再檢查"
     }
+
+    # 🧒 內容風險（情色/暴力等不適合兒童）
+    KID_CONTENT_RISK_TEXT = {
+        "critical": "🚨 這個網站有大人才能看的內容，小朋友不要進去喔！",
+        "high": "⚠️ 這個網站有不適合小朋友的內容，建議不要訪問",
+        "medium": "🤔 這個網站可能有不恰當的內容，要多小心",
+        "low": "🙂 看起來還好，但上網還是要保持警覺喔",
+        "inconclusive": "❓ 無法確定內容是否適合，建議不要點擊"
+    }
     
-    def __init__(self, target_url: str, analysis_result: Dict, cleaned_results: List[Dict]):
+    def __init__(
+        self,
+        target_url: str,
+        analysis_result: Dict,
+        cleaned_results: List[Dict],
+        risk_source: str = "phishing",
+    ):
         self.target_url = target_url.strip()
         self.analysis = analysis_result
         self.cleaned_results = cleaned_results
+        self.risk_source = risk_source  # "phishing" | "content" | "none"
         self.timestamp = datetime.now().isoformat()
         
         # 提取域名特徵
@@ -75,7 +91,10 @@ class ReportGenerator:
             "頂級域名": "網址的尾巴",
             "個資": "個人資料",
             "仿冒": "假裝成",
-            "威脅情報": "安全檢查"
+            "威脅情報": "安全檢查",
+            "色情": "不適合小朋友看的內容",
+            "成人內容": "大人才能看的內容",
+            "暴力": "打打殺殺的畫面",
         }
         for old, new in replacements.items():
             text = text.replace(old, new)
@@ -134,15 +153,15 @@ class ReportGenerator:
         """生成兒童友善的風險摘要"""
         risk_level = self.analysis.get('risk_level', 'inconclusive')
         risk_ui = self.RISK_UI.get(risk_level, self.RISK_UI['inconclusive'])
-        
-        # 提取或生成簡化解釋
+        risk_texts = self.KID_CONTENT_RISK_TEXT if self.risk_source == "content" else self.KID_RISK_TEXT
+
         explanation = self.analysis.get('why_unsafe') or self.analysis.get('explanation', '')
         if not explanation or len(explanation) < 50:
             explanation = self._generate_default_kid_explanation()
-        
+
         return {
             "title": f"{risk_ui['icon']} {risk_ui['label']}！",
-            "simple_message": self.KID_RISK_TEXT.get(risk_level, ""),
+            "simple_message": risk_texts.get(risk_level, risk_texts.get("inconclusive", "")),
             "short_explanation": self._simplify_text(explanation, 200),
             "emoji_reaction": risk_ui['icon'],
             "action_verb": "不要點" if risk_level in ['critical', 'high'] else "小心點"
@@ -151,6 +170,13 @@ class ReportGenerator:
     def _generate_default_kid_explanation(self) -> str:
         """預設兒童版解釋（當 LLM 沒提供時）"""
         risk_level = self.analysis.get('risk_level', 'inconclusive')
+        content_type = self.analysis.get('content_risk_type', '')
+
+        if self.risk_source == "content" and risk_level in ['critical', 'high']:
+            return f"""這個網站可能有不適合小朋友看的內容（像是{content_type or '大人才能看的東西'}）：
+1. 網路上有些內容是設計給大人看的
+2. 小朋友看到可能會有不好的影響
+3. 如果不小心點進去，要馬上關掉，並告訴爸媽或老師喔！"""
         if risk_level in ['critical', 'high']:
             return f"""這個網址有幾個「紅燈信號」🚦：
 1. 網址的尾巴 (.{self.target_tld}) 很少見，很多騙人的網站喜歡用
@@ -342,12 +368,32 @@ class ReportGenerator:
 
     def _generate_fallback_quiz(self) -> Dict:
         """Fallback 題目生成器（當 LLM 沒提供時）"""
+        if self.risk_source == "content":
+            return self._generate_content_risk_quiz()
         if any(brand in self.target_domain.lower() for brand in ['paypa', 'amazn', 'app1e', 'g0ogle', 'allegro']):
             return self._generate_brand_impersonation_quiz()
         elif self.target_tld.lower() in ['cfd', 'xyz', 'top', 'rest']:
             return self._generate_tld_quiz()
         else:
             return self._generate_generic_safety_quiz()
+
+    def _generate_content_risk_quiz(self) -> Dict:
+        """內容風險（不適合兒童）風格題目"""
+        return {
+            "enabled": True,
+            "question": "🤔 如果你不小心點進了一個「不適合小朋友看」的網站，第一步應該做什麼？",
+            "hint": "記得：不要慌張，找大人幫忙！",
+            "type": "single_choice",
+            "options": [
+                {"id": "A", "text": "繼續看下去，反正都點進來了", "is_correct": False, "explanation": "這樣會看到更多不適當的內容，要趕快關掉喔！", "feedback_icon": "❌"},
+                {"id": "B", "text": "馬上關掉網頁，然後告訴爸媽或老師", "is_correct": True, "explanation": "答對啦！關掉並告訴大人是最好的做法！", "feedback_icon": "✅"},
+                {"id": "C", "text": "偷偷存起來，不要讓別人知道", "is_correct": False, "explanation": "遇到這種情況要勇敢求助，大人會幫忙你的！", "feedback_icon": "❌"},
+                {"id": "D", "text": "分享給同學一起看", "is_correct": False, "explanation": "不適當的內容不應該分享，要保護自己也保護同學喔！", "feedback_icon": "❌"},
+            ],
+            "correct_answer_id": "B",
+            "learning_point": "遇到不適當的網站：關掉 → 告訴大人 → 不要害怕求助！",
+            "difficulty": "easy"
+        }
     
     def _generate_brand_impersonation_quiz(self) -> Dict:
         """品牌仿冒風格題目"""
@@ -478,14 +524,22 @@ class ReportGenerator:
     def _generate_safety_tips(self) -> List[Dict]:
         """生成安全小撇步（前端可卡片輪播）"""
         recommendations = self.analysis.get('recommendations', [])
-        
-        kid_tips_templates = [
-            {"icon": "🔍", "tip": "不隨便點陌生連結", "why": "陌生連結可能帶你到騙人的網站"},
-            {"icon": "🔐", "tip": "不在不明網站輸入密碼", "why": "騙人的網站會偷走你的帳號"},
-            {"icon": "👨‍👩‍👧", "tip": "有疑問時問爸媽或老師", "why": "大人經驗多，可以幫你判斷"},
-            {"icon": "🔖", "tip": "把常用網站加入書籤", "why": "避免打錯網址跑到假網站"},
-            {"icon": "🔄", "tip": "定期更新密碼", "why": "不同網站用不同密碼更安全"}
-        ]
+
+        if self.risk_source == "content":
+            kid_tips_templates = [
+                {"icon": "🚫", "tip": "不點開奇怪的連結", "why": "可能連到不適合小朋友的網站"},
+                {"icon": "👀", "tip": "看到不舒服的內容要馬上關掉", "why": "保護自己的眼睛和心情"},
+                {"icon": "👨‍👩‍👧", "tip": "遇到不清楚的網站告訴爸媽或老師", "why": "大人可以幫你判斷"},
+                {"icon": "📱", "tip": "用網路時保持警覺", "why": "不是所有網站都適合小朋友"},
+            ]
+        else:
+            kid_tips_templates = [
+                {"icon": "🔍", "tip": "不隨便點陌生連結", "why": "陌生連結可能帶你到騙人的網站"},
+                {"icon": "🔐", "tip": "不在不明網站輸入密碼", "why": "騙人的網站會偷走你的帳號"},
+                {"icon": "👨‍👩‍👧", "tip": "有疑問時問爸媽或老師", "why": "大人經驗多，可以幫你判斷"},
+                {"icon": "🔖", "tip": "把常用網站加入書籤", "why": "避免打錯網址跑到假網站"},
+                {"icon": "🔄", "tip": "定期更新密碼", "why": "不同網站用不同密碼更安全"}
+            ]
         
         tips = []
         for i, rec in enumerate(recommendations[:3]):

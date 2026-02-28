@@ -19,6 +19,7 @@ from config import Config
 from security_api_client import SecurityAPIClient
 from featherless_analyzer import FeatherlessAnalyzer
 from report_generator import ReportGenerator
+from content_risk_checker import fetch_content_for_url, classify_content_safety, is_unsuitable_for_children
 from utils import save_json, step_marker, load_json
 
 logging.basicConfig(
@@ -99,57 +100,97 @@ def main():
             print("=" * 60)
             return
         
-        # ========== Step 2: LLM 深度分析 ==========
+        # ========== Step 2: 分流判斷 → LLM 深度分析 ==========
         llm_output = output_dir / "02_llm_analysis.json"
         overall_risk = security_results.get('overall_risk', 'inconclusive')
-        
-        # 決定是否呼叫 LLM
-        should_call_llm = (
-            args.force_llm or 
-            overall_risk in ['critical', 'high', 'medium'] or
-            not args.skip_llm
-        )
-        
-        if should_call_llm:
-            logger.info(step_marker(2, f"風險等級：{overall_risk}，開始 LLM 深度分析"))
-            
-            analyzer = FeatherlessAnalyzer()
+        analyzer = FeatherlessAnalyzer()
+
+        # 路徑 A：釣魚/資安風險 → 直接進入 Featherless（兒童輔導員模式）
+        if overall_risk in ['critical', 'high', 'medium'] or args.force_llm:
+            logger.info(step_marker(2, f"偵測到釣魚/資安風險 ({overall_risk})，開始 LLM 深度分析"))
             llm_analysis = analyzer.analyze(target_url, security_results)
-            
-            # 合併結果
             final_result = {
                 "target_url": target_url,
                 "security_check": security_results,
                 "llm_analysis": llm_analysis,
+                "risk_source": "phishing",
                 "final_risk_level": llm_analysis.get('risk_level', overall_risk),
                 "timestamp": datetime.now().isoformat()
             }
-            
             save_json(final_result, llm_output)
             logger.info(step_marker(2, "LLM 分析完成", "done"))
+
+        # 路徑 B：資安無明顯風險 → Exa 取得內容 → 檢查是否為情色/暴力等不當內容
         else:
-            logger.info(step_marker(2, f"風險等級低 ({overall_risk})，跳過 LLM 分析", "done"))
-            final_result = {
-                "target_url": target_url,
-                "security_check": security_results,
-                "final_risk_level": overall_risk,
-                "llm_analysis": None,
-                "timestamp": datetime.now().isoformat()
-            }
-            save_json(final_result, llm_output)
+            logger.info(step_marker(2, "資安檢查無明顯風險，進行內容適齡檢查（Exa + Featherless）"))
+            content, content_err = fetch_content_for_url(target_url)
+
+            if content:
+                content_classification = classify_content_safety(target_url, content)
+                unsuitable = content_classification.get("is_unsuitable_for_children") or is_unsuitable_for_children(content_classification)
+
+                if unsuitable:
+                    logger.info(step_marker(2, "偵測到不適合兒童的內容，開始 LLM 深度分析"))
+                    llm_analysis = analyzer.analyze_content_risk(target_url, content, content_classification)
+                    final_result = {
+                        "target_url": target_url,
+                        "security_check": security_results,
+                        "content_classification": content_classification,
+                        "llm_analysis": llm_analysis,
+                        "risk_source": "content",
+                        "final_risk_level": llm_analysis.get('risk_level', 'high'),
+                        "timestamp": datetime.now().isoformat()
+                    }
+                    save_json(final_result, llm_output)
+                    logger.info(step_marker(2, "LLM 內容風險分析完成", "done"))
+                else:
+                    logger.info(step_marker(2, "內容檢查無不當項目", "done"))
+                    final_result = {
+                        "target_url": target_url,
+                        "security_check": security_results,
+                        "content_classification": content_classification,
+                        "llm_analysis": None,
+                        "risk_source": "none",
+                        "final_risk_level": "low",
+                        "timestamp": datetime.now().isoformat()
+                    }
+                    save_json(final_result, llm_output)
+            else:
+                logger.info(step_marker(2, f"無法取得內容 ({content_err or '未知'})，維持資安結果", "done"))
+                final_result = {
+                    "target_url": target_url,
+                    "security_check": security_results,
+                    "llm_analysis": None,
+                    "risk_source": "none",
+                    "final_risk_level": overall_risk,
+                    "timestamp": datetime.now().isoformat()
+                }
+                save_json(final_result, llm_output)
         
-        # ========== Step 3: 生成 Markdown 報告 ==========
+        # ========== Step 3: 生成報告 ==========
         report_output = output_dir / "03_final_report.json"
-        logger.info(step_marker(3, "生成 Markdown 報告"))
-        
-        # 使用 ReportGenerator（適配新資料結構）
-        analysis_data = final_result.get('llm_analysis') or security_results
+        logger.info(step_marker(3, "生成報告"))
+
+        analysis_data = final_result.get('llm_analysis')
+        if not analysis_data and final_result.get('final_risk_level') == 'low':
+            analysis_data = {
+                "risk_level": "low",
+                "confidence": "medium",
+                "risk_score": 20,
+                "threat_summary": "未偵測到釣魚或明顯不良內容",
+                "why_unsafe": "此網址在資安與內容檢查中未發現明顯風險，但仍建議上網時保持警覺喔！",
+                "evidence_analysis": [],
+                "recommendations": ["保持警覺", "不隨便點陌生連結", "有疑問問爸媽或老師"],
+            }
+        if not analysis_data:
+            analysis_data = security_results
         cleaned_results = security_results.get('raw_results', [])
-        
+
         generator = ReportGenerator(
             target_url=target_url,
             analysis_result=analysis_data,
-            cleaned_results=cleaned_results
+            cleaned_results=cleaned_results,
+            risk_source=final_result.get('risk_source', 'phishing')
         )
         generator.generate_report(report_output)
         
