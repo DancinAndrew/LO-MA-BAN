@@ -91,12 +91,13 @@ if __name__ == "__main__":
     parser.add_argument("--port", type=int, default=None, help="Port to bind (default: from PORT env or 8001)")
     parser.add_argument("--host", type=str, default=None, help="Host to bind (default: from HOST env or 0.0.0.0)")
     args = parser.parse_args()
-    port = args.port if args.port is not None else Config.PORT
-    host = args.host if args.host is not None else Config.HOST
+    _s = get_settings()
+    port = args.port if args.port is not None else _s.port
+    host = args.host if args.host is not None else _s.host
 
     uvicorn.run(
         "main:app",
-        host=settings.host,
-        port=settings.port,
+        host=host,
+        port=port,
         reload=True,
     )

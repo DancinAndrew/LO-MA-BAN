@@ -111,9 +111,10 @@ class Settings(BaseSettings):
     safebrowsing_client_version: str = "2.0.0"
 
     # --- Server ---
-    HOST: str = os.getenv("HOST", "0.0.0.0")
-    PORT: int = int(os.getenv("PORT", "8001"))
-# --- CORS ---
+    host: str = "0.0.0.0"
+    port: int = 8001
+
+    # --- CORS ---
     cors_origins: list[str] = Field(default=["*"])
 
     @field_validator("cors_origins", mode="before")
