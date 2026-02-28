@@ -1,0 +1,1045 @@
+/* ScoutNet - Cute style, kids' web safety prompt */
+/* Primary #FFB347 orange, secondary #4A90E2 blue, background #FFF9E6 */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.scoutnet-container {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #ffeaa7 0%, #fff3cd 25%, #ffe4b5 50%, #ffecb3 75%, #fff9e6 100%);
+  background-size: 400% 400%;
+  padding: 24px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+  position: relative;
+}
+
+.scoutnet-container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(255, 179, 71, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(74, 144, 226, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.scout-card {
+  width: 520px;
+  max-width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 249, 230, 0.5);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 
+    0 8px 32px rgba(255, 149, 0, 0.15),
+    0 2px 8px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  overflow: hidden;
+  animation: cardSlideIn 0.4s ease-out;
+  position: relative;
+  z-index: 1;
+}
+
+/* Cute fox header on top of the box */
+.scout-card-header {
+  padding: 28px 24px 20px;
+  text-align: center;
+  background: linear-gradient(180deg, rgba(255, 228, 181, 0.6) 0%, rgba(255, 249, 230, 0.3) 70%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.scout-fox-mascot {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 12px;
+}
+
+.scout-fox-mascot::before {
+  content: '';
+  position: absolute;
+  inset: -12px;
+  background: radial-gradient(circle, rgba(255, 228, 181, 0.5) 0%, transparent 70%);
+  border-radius: 50%;
+  z-index: -1;
+}
+
+.scout-fox-emoji {
+  display: inline-block;
+  font-size: 72px;
+  line-height: 1;
+  filter: drop-shadow(0 4px 12px rgba(255, 149, 0, 0.35));
+  animation: foxBounce 2.5s ease-in-out infinite;
+}
+
+@keyframes foxBounce {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-6px) scale(1.08); }
+}
+
+.scout-card-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #334155;
+  margin: 0 0 4px 0;
+  letter-spacing: -0.5px;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+}
+
+.scout-card-subtitle {
+  font-size: 14px;
+  color: #64748B;
+  margin: 0;
+  font-weight: 500;
+}
+
+.scout-card-body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+}
+
+.chat-thread {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 24px 24px;
+}
+
+.chat-thread-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 0 8px;
+}
+
+@keyframes cardSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.step-container {
+  padding: 32px;
+  animation: cardSlideIn 0.35s ease-out;
+}
+
+/* ========== Chat-style layout ========== */
+.chat-view {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 100%;
+}
+
+.chat-message {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.chat-message--fox {
+  align-items: flex-start;
+}
+
+.chat-fox-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.chat-message--user {
+  justify-content: flex-end;
+  align-items: flex-end;
+  width: 100%;
+}
+
+.chat-user-side {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 8px;
+  max-width: 85%;
+}
+
+.chat-bubble--user {
+  width: 100%;
+  max-width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+  /* small radius on right bottom only (tail on right bottom) */
+  border-top-left-radius: 18px;
+  border-top-right-radius: 18px;
+  border-bottom-right-radius: 6px;
+  border-bottom-left-radius: 18px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.chat-bubble--user .chat-bubble-text {
+  color: #334155;
+}
+
+.chat-avatar--user {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  font-size: 22px;
+  background: linear-gradient(135deg, #FFE4EC 0%, #F8D7E8 100%);
+  box-shadow: 0 2px 0 #E8A0B8;
+  flex-shrink: 0;
+}
+
+.chat-avatar {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  background: #FFE4B5;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  box-shadow: 0 3px 0 #FF9500;
+  flex-shrink: 0;
+}
+
+.chat-bubbles {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.chat-bubble {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 18px 18px 18px 6px;
+  padding: 14px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  max-width: 100%;
+}
+
+.chat-bubble-text {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #334155;
+}
+
+.chat-bubble-label {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748B;
+}
+
+.chat-bubble-note {
+  margin: 8px 0 0 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #DC2626;
+}
+
+.chat-bubble-icon {
+  display: block;
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.chat-bubble-list {
+  margin: 0;
+  padding-left: 20px;
+  color: #334155;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.chat-bubble-list li {
+  margin: 4px 0;
+}
+
+.chat-bubble--card {
+  padding: 16px;
+  background: rgba(248, 250, 252, 0.95);
+}
+
+.chat-bubble--success {
+  background: rgba(240, 253, 244, 0.95);
+  border-color: rgba(76, 175, 80, 0.4);
+}
+
+.chat-bubble--success .chat-bubble-text {
+  color: #166534;
+}
+
+.chat-bubble--warning {
+  background: rgba(254, 242, 242, 0.95);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.chat-bubble--warning .chat-bubble-text {
+  color: #991B1B;
+}
+
+.chat-bubble--tips {
+  background: rgba(248, 250, 252, 0.95);
+  border-color: rgba(226, 232, 240, 0.8);
+}
+
+/* Reply chips (user choices, tap-to-reply style) */
+.chat-replies {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.chat-replies--checklist {
+  flex-direction: column;
+  justify-content: stretch;
+  align-items: stretch;
+}
+
+.chat-replies--actions {
+  flex-direction: row;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.chat-reply {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 20px;
+  border-radius: 24px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid #E2E8F0;
+  background: rgba(255, 255, 255, 0.9);
+  color: #334155;
+  font-family: inherit;
+}
+
+.chat-reply:hover {
+  border-color: #FFB347;
+  background: #FFF9F0;
+  transform: scale(1.02);
+}
+
+.chat-reply:active {
+  transform: scale(0.98);
+}
+
+.chat-reply--primary {
+  background: linear-gradient(180deg, #FFB347 0%, #FF9500 100%);
+  border-color: transparent;
+  color: white;
+  box-shadow: 0 3px 0 #B25F00;
+}
+
+.chat-reply--primary:hover {
+  background: linear-gradient(180deg, #FFB347 0%, #FF9500 100%);
+  border-color: transparent;
+  transform: translateY(1px);
+  box-shadow: 0 2px 0 #B25F00;
+}
+
+.chat-reply--secondary {
+  background: rgba(255, 255, 255, 0.95);
+  color: #64748B;
+}
+
+.chat-reply-emoji {
+  font-size: 20px;
+}
+
+.chat-reply--choice {
+  justify-content: flex-start;
+  text-align: left;
+  cursor: pointer;
+}
+
+.chat-reply--choice.selected {
+  background: #FFFBEB;
+  border-color: #FF9500;
+}
+
+.chat-reply-checkbox {
+  width: 22px;
+  height: 22px;
+  accent-color: #FF9500;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.chat-reply-text {
+  flex: 1;
+}
+
+.chat-reply-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #E2E8F0;
+  border-radius: 16px;
+  font-size: 15px;
+  margin-top: 8px;
+  background: white;
+  color: #334155;
+  font-family: inherit;
+}
+
+.chat-reply-input:focus {
+  outline: none;
+  border-color: #FF9500;
+}
+
+.chat-reply-input::placeholder {
+  color: #94A3B8;
+}
+
+.chat-reply-input-wrap {
+  margin-top: 4px;
+}
+
+.chat-reply-textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 16px 18px;
+  border: 2px solid #E2E8F0;
+  border-radius: 20px;
+  font-size: 15px;
+  resize: none;
+  background: rgba(255, 255, 255, 0.9);
+  color: #334155;
+  font-family: inherit;
+  line-height: 1.5;
+  transition: border-color 0.2s;
+}
+
+.chat-reply-textarea:focus {
+  outline: none;
+  border-color: #FF9500;
+}
+
+.chat-reply-textarea::placeholder {
+  color: #94A3B8;
+}
+
+/* Compact variants inside chat bubbles */
+.risk-badge--inline {
+  margin-bottom: 14px;
+  padding: 12px 16px;
+  border-radius: 16px;
+}
+
+.risk-badge--inline .risk-level {
+  font-size: 16px;
+}
+
+.risk-badge--inline .risk-score {
+  font-size: 13px;
+}
+
+.url-comparison--compact {
+  padding: 14px;
+  margin-bottom: 14px;
+  border-radius: 16px;
+}
+
+.url-comparison--compact .url-item {
+  margin-bottom: 8px;
+}
+
+.url-comparison--compact .url-item:last-child {
+  margin-bottom: 0;
+}
+
+.warning-item--compact {
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  border-radius: 12px;
+}
+
+.warning-item--compact:last-child {
+  margin-bottom: 0;
+}
+
+.warning-item--compact .warning-dot {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  font-size: 12px;
+}
+
+/* ========== A. Risk badge (Step 1) ========== */
+.risk-badge {
+  background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+  border-radius: 30px;
+  padding: 16px 24px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: white;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.risk-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.risk-level {
+  font-size: 18px;
+  font-weight: 600;
+  flex: 1;
+}
+
+.risk-score {
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0.95;
+}
+
+/* ========== B. Little Fox avatar (shared) ========== */
+.fox-section {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.fox-avatar {
+  width: 80px;
+  height: 80px;
+  min-width: 80px;
+  min-height: 80px;
+  background: #FFE4B5;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 56px;
+  box-shadow: 0 6px 0 #FF9500;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.fox-avatar:hover {
+  transform: scale(1.05);
+}
+
+.fox-message {
+  flex: 1;
+  min-width: 0;
+}
+
+.fox-name {
+  color: #4A90E2;
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+.fox-question {
+  color: #334155;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+/* ========== C. URL comparison cards ========== */
+.url-comparison {
+  background: #F8FAFC;
+  border-radius: 24px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.url-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.url-item:last-child {
+  margin-bottom: 0;
+}
+
+.url-label {
+  width: 80px;
+  flex-shrink: 0;
+  color: #64748B;
+  font-size: 14px;
+}
+
+.url-current {
+  font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+  font-size: 15px;
+  font-weight: 500;
+  color: #EF4444;
+  word-break: break-all;
+}
+
+.url-correct {
+  font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+  font-size: 15px;
+  font-weight: 500;
+  color: #10B981;
+  word-break: break-all;
+}
+
+.section-title {
+  font-size: 16px;
+  color: #334155;
+  margin-bottom: 14px;
+  font-weight: 600;
+}
+
+/* ========== D. Warning/suspicious list ========== */
+.warning-list {
+  margin-bottom: 24px;
+}
+
+.warning-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  background: #FEF2F2;
+  border-radius: 16px;
+  margin-bottom: 10px;
+}
+
+.warning-item:last-child {
+  margin-bottom: 0;
+}
+
+.warning-dot {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
+  background: #EF4444;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.warning-text {
+  color: #334155;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* ========== E. Option buttons (3 large buttons) ========== */
+.option-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.option-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 20px;
+  height: 80px;
+  background: #FFF9E6;
+  border: 2px solid #E2E8F0;
+  border-radius: 24px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  width: 100%;
+}
+
+.option-card:hover {
+  border-color: #FFB347;
+  background: #FFF9F0;
+  transform: scale(1.02);
+}
+
+.option-card:active {
+  transform: scale(0.98);
+}
+
+.option-emoji {
+  font-size: 32px;
+  flex-shrink: 0;
+}
+
+.option-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: #334155;
+}
+
+/* ========== F. Reason selection area ========== */
+.reasons-list {
+  margin: 20px 0;
+  background: #F8FAFC;
+  border-radius: 20px;
+  padding: 20px;
+}
+
+.reason-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border: 2px solid #E2E8F0;
+  border-radius: 20px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.reason-item:last-child {
+  margin-bottom: 0;
+}
+
+.reason-item:hover {
+  border-color: #FFB347;
+  background: #FFF9F0;
+}
+
+.reason-item.selected {
+  background: #FFFBEB;
+  border-color: #FF9500;
+}
+
+.reason-item input[type="checkbox"] {
+  width: 24px;
+  height: 24px;
+  accent-color: #FF9500;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.reason-text {
+  font-size: 16px;
+  color: #334155;
+  font-weight: 500;
+}
+
+.other-input {
+  width: 100%;
+  padding: 14px 18px;
+  border: 2px solid #E2E8F0;
+  border-radius: 16px;
+  font-size: 15px;
+  margin-top: 12px;
+  background: white;
+  color: #334155;
+  transition: border-color 0.2s;
+}
+
+.other-input:focus {
+  outline: none;
+  border-color: #FF9500;
+}
+
+.other-input::placeholder {
+  color: #94A3B8;
+}
+
+/* ========== G. Primary buttons ========== */
+.next-button,
+.primary-button {
+  width: 100%;
+  padding: 16px 24px;
+  background: linear-gradient(180deg, #FFB347 0%, #FF9500 100%);
+  color: white;
+  border: none;
+  border-radius: 40px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #B25F00;
+  transition: all 0.2s ease;
+}
+
+.next-button:hover,
+.primary-button:hover {
+  transform: translateY(1px);
+  box-shadow: 0 3px 0 #B25F00;
+}
+
+.next-button:active,
+.primary-button:active {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 #B25F00;
+}
+
+.button-group {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.button-group .primary-button {
+  flex: 2;
+}
+
+.secondary-button,
+.back-button {
+  flex: 1;
+  padding: 16px 20px;
+  background: white;
+  color: #64748B;
+  border: 2px solid #E2E8F0;
+  border-radius: 40px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.secondary-button:hover,
+.back-button:hover {
+  border-color: #FFB347;
+  background: #FFF9F0;
+  color: #334155;
+}
+
+.secondary-button:active,
+.back-button:active {
+  transform: scale(0.98);
+}
+
+/* ========== H. Result cards ========== */
+.result-card {
+  padding: 24px;
+  border-radius: 24px;
+  margin: 20px 0;
+  text-align: center;
+  animation: cardSlideIn 0.35s ease-out;
+}
+
+.result-card.success {
+  background: #F0FDF4;
+  border: 2px solid #4CAF50;
+}
+
+.result-card.warning {
+  background: #FEF2F2;
+  border: 2px solid #EF4444;
+}
+
+.result-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  display: block;
+  line-height: 1;
+}
+
+.result-text {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #334155;
+}
+
+.result-card.success .result-text {
+  color: #166534;
+}
+
+.result-card.warning .result-text {
+  color: #991B1B;
+}
+
+.warning-note {
+  color: #EF4444;
+  margin-top: 10px;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+/* Safety tips list */
+.safety-tips {
+  background: #F8FAFC;
+  padding: 20px;
+  border-radius: 20px;
+  margin: 20px 0;
+  border: 2px solid #E2E8F0;
+}
+
+.safety-tips p {
+  color: #334155;
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 10px;
+}
+
+.safety-tips ul {
+  margin-left: 20px;
+  color: #64748B;
+}
+
+.safety-tips li {
+  margin: 6px 0;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* Step 6 large text input */
+.reason-input {
+  width: 100%;
+  min-height: 120px;
+  padding: 18px 20px;
+  border: 2px solid #E2E8F0;
+  border-radius: 20px;
+  font-size: 15px;
+  margin: 20px 0;
+  resize: none;
+  background: white;
+  color: #334155;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+
+.reason-input:focus {
+  outline: none;
+  border-color: #FF9500;
+}
+
+.reason-input::placeholder {
+  color: #94A3B8;
+}
+
+/* ========== Responsive ========== */
+@media (max-width: 480px) {
+  .scout-card-header {
+    padding: 20px 20px 16px;
+  }
+
+  .scout-fox-emoji {
+    font-size: 56px;
+  }
+
+  .scout-card-title {
+    font-size: 22px;
+  }
+
+  .scout-card-subtitle {
+    font-size: 13px;
+  }
+
+  .step-container {
+    padding: 24px;
+  }
+
+  .chat-view {
+    gap: 16px;
+  }
+
+  .chat-avatar {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    font-size: 24px;
+  }
+
+  .chat-bubble {
+    padding: 12px 16px;
+    border-radius: 16px 16px 16px 6px;
+  }
+
+  .chat-bubble-text {
+    font-size: 15px;
+  }
+
+  .chat-reply {
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+
+  .scout-card {
+    border-radius: 24px;
+  }
+
+  .fox-avatar {
+    width: 60px;
+    height: 60px;
+    min-width: 60px;
+    min-height: 60px;
+    font-size: 42px;
+    box-shadow: 0 4px 0 #FF9500;
+  }
+
+  .fox-question {
+    font-size: 16px;
+  }
+
+  .risk-badge {
+    padding: 14px 20px;
+    border-radius: 24px;
+  }
+
+  .risk-level {
+    font-size: 16px;
+  }
+
+  .url-label {
+    width: 72px;
+    font-size: 13px;
+  }
+
+  .option-card {
+    height: 72px;
+    padding: 16px;
+  }
+
+  .option-emoji {
+    font-size: 28px;
+  }
+
+  .option-text {
+    font-size: 16px;
+  }
+
+  .result-card {
+    padding: 20px;
+  }
+
+  .result-icon {
+    font-size: 40px;
+  }
+}
