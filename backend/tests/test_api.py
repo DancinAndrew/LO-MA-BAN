@@ -71,7 +71,7 @@ def run_first_stage(scenario_name: str, url: str) -> Optional[dict]:
 
     try:
         r = httpx.post(
-            f"{BASE_URL}/api/v1/analyze",
+            f"{BASE_URL}/api/v1/scan",
             json={"url": url},
             timeout=180,
         )
@@ -90,7 +90,7 @@ def run_first_stage(scenario_name: str, url: str) -> Optional[dict]:
     if report:
         _save(report, out_dir / "03_final_report.json")
     else:
-        print("  ⚠️  No report generated (skip_llm or low risk)")
+        print("  ⚠️  No report generated (quick_scan or low risk)")
 
     return data
 
@@ -111,7 +111,7 @@ def run_second_stage(scenario_name: str, user_input: str, first_stage_report: di
 
     try:
         r = httpx.post(
-            f"{BASE_URL}/api/v1/second-stage/analyze",
+            f"{BASE_URL}/api/v1/scan/persuade",
             json=request_body,
             timeout=120,
         )
