@@ -6,6 +6,32 @@
   to { transform: rotate(360deg); }
 }
 
+@keyframes scoutnet-typing-dots {
+  0%, 20% { opacity: 0; }
+  40% { opacity: 1; }
+  100% { opacity: 1; }
+}
+
+.scoutnet-typing-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.scoutnet-typing-indicator .dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #94a3b8;
+  animation: scoutnet-typing-dots 1.4s ease-in-out infinite;
+}
+
+.scoutnet-typing-indicator .dot:nth-child(1) { animation-delay: 0s; }
+.scoutnet-typing-indicator .dot:nth-child(2) { animation-delay: 0.2s; }
+.scoutnet-typing-indicator .dot:nth-child(3) { animation-delay: 0.4s; }
+
 * {
   margin: 0;
   padding: 0;
