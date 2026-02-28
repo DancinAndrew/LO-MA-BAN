@@ -9,6 +9,7 @@ load_dotenv(Path(__file__).parent / ".env")
 class Config:
     # ========== API 金鑰 ==========
     FEATHERLESS_API_KEY = os.getenv("FEATHERLESS_API_KEY", "")
+    EXA_API_KEY = os.getenv("EXA_API_KEY", "")
     
     # ========== Featherless 設定 ==========
     FEATHERLESS_API_URL = "https://api.featherless.ai/v1/chat/completions"
