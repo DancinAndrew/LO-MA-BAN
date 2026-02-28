@@ -52,16 +52,16 @@ class Settings(BaseSettings):
     # --- Featherless AI (OpenAI-compatible) ---
     featherless_base_url: str = "https://api.featherless.ai/v1"
     featherless_api_key: str = ""
-    featherless_model: str = "Qwen/Qwen2.5-7B-Instruct"
+    featherless_model: str = "Qwen/Qwen3-0.6B"
     featherless_temperature: float = 0.1
-    featherless_max_tokens: int = 2000
+    featherless_max_tokens: int = 800
     featherless_top_p: float = 0.9
 
     # --- LLM per-task overrides ---
     content_classify_temperature: float = 0.1
     content_classify_max_tokens: int = 400
     persuasion_temperature: float = 0.1
-    persuasion_max_tokens: int = 1000
+    persuasion_max_tokens: int = 800
 
     # --- Exa AI ---
     exa_api_key: str = ""
