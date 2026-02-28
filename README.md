@@ -106,7 +106,7 @@ When users still want to access a risky site after seeing the report, a second s
 
 ### Complete Interaction Flow
 
-![User Flow Diagram](dev-doc/user_flow_v2.png)
+![User Flow Diagram](dev-doc/user_flow_v2.jpg)
 
 ### Flow Description
 
