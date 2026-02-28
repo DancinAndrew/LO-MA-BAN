@@ -188,3 +188,15 @@ For detailed backend API documentation, see [backend/README.md](backend/README.m
    - *Recommendation: Show fun loading knowledge tips, prioritize safety.*
 2. **Whitelist Strategy**: Should commonly visited safe sites (e.g. google.com, youtube.com) skip scanning entirely, or always perform at least a quick check?
    - *Recommendation: Maintain a configurable whitelist with quick checks.*
+---
+## Our PPT 
+https://www.canva.com/design/DAHCnrTrteg/raKKjzz7QhRYQgeb3TrtMA/edit?utm_content=DAHCnrTrteg&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton
+--
+## 👥 Team Members & Responsibilities
+
+| Member | Role | Key Responsibilities |
+|:------:|:----:|:---------------------|
+| **Shirley** | Frontend Developer | • UI/UX design and development<br>• Frontend architecture planning |
+| **Kelly** | Multimedia Designer | • Presentation design and creation<br>• Video editing and post-production |
+| **Andrew** | Backend Developer | • Server-side logic development<br>• System architecture planning |
+| **Shawn** | Backend Developer<br>+ Chrome Extension | • Backend feature development<br>• Chrome extension development|
