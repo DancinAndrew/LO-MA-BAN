@@ -1,6 +1,7 @@
 """ScanOrchestrator — first-stage URL scan orchestration logic."""
 from __future__ import annotations
 
+import asyncio
 import logging
 from datetime import datetime, timezone
 from typing import Any, Callable
@@ -35,14 +36,24 @@ class ScanOrchestrator:
         quick_scan: bool,
         force_deep_analysis: bool,
     ) -> ScanResponse:
+        # Run security check and content fetch in parallel to save time.
+        security_task = asyncio.create_task(
+            self._security_checker.check_all(target_url)
+        )
+        content_task = asyncio.create_task(
+            self._content_checker.fetch_content(target_url)
+        )
+
         try:
-            security_results = await self._security_checker.check_all(target_url)
+            security_results = await security_task
         except Exception:
+            content_task.cancel()
             logger.exception("Security check failed")
             raise HTTPException(status_code=502, detail="Security API check failed")
 
         overall_risk = security_results.get("overall_risk", "inconclusive")
         if quick_scan and not force_deep_analysis:
+            content_task.cancel()
             return ScanResponse(
                 target_url=target_url,
                 risk_source="none",
@@ -60,6 +71,7 @@ class ScanOrchestrator:
         )
 
         if should_call_phishing_llm:
+            content_task.cancel()
             risk_source = "phishing"
             try:
                 llm_analysis = await self._threat_analyzer.analyze_phishing(
@@ -69,7 +81,11 @@ class ScanOrchestrator:
                 logger.exception("LLM phishing analysis failed")
                 llm_analysis = ThreatAnalysisService._fallback_phishing(security_results)
         else:
-            content, content_err = await self._content_checker.fetch_content(target_url)
+            try:
+                content, content_err = await content_task
+            except Exception:
+                content, content_err = None, "Content fetch failed"
+
             if content:
                 content_classification = await self._content_checker.classify_safety(
                     target_url, content
