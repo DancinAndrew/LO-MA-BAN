@@ -170,7 +170,7 @@ class FeatherlessAnalyzer:
             "model": self.model,
             "messages": messages,
             "temperature": 0.1,  # 低溫度確保輸出穩定
-            "max_tokens": 1500,
+            "max_tokens": 800,
             "top_p": 0.9,
             "frequency_penalty": 0,
             "presence_penalty": 0,
