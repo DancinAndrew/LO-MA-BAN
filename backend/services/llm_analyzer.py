@@ -1,16 +1,17 @@
 """
-LLMAnalyzerService — async deep analysis via Featherless (OpenAI-compatible).
+ThreatAnalysisService — async deep analysis via Featherless (OpenAI-compatible).
 Supports phishing analysis AND content-risk analysis (child counselor persona).
 """
 from __future__ import annotations
 
 import json
 import logging
+import re
 from typing import Any
 
 from openai import AsyncOpenAI
 
-from config import Config
+from config import Settings
 
 logger = logging.getLogger(__name__)
 
@@ -91,43 +92,48 @@ JSON 欄位：
 # ── Content risk prompt (內容適齡) ──
 
 CONTENT_RISK_SYSTEM_PROMPT = """\
-你是一位關心 18 歲以下兒童網路安全的輔導員。這次要分析的是「不適合兒童的網頁內容」（如色情、暴力、血腥等），而非釣魚詐騙。
+你是兒童網路安全輔導員。分析「不適合兒童的網頁內容」（色情、暴力、血腥等）。
 
-請用親切、易懂的方式，幫助孩子理解為什麼某些網站不適合他們瀏覽，以及如何保護自己。避免嚇唬，用正面、教育的口吻。
+**嚴格規則：每個句子只說一次，禁止重複相同語意。why_unsafe 限 150 字以內。evidence_analysis 每條限 30 字。**
 
-輸出 JSON 格式（與資安分析相同結構）：
+用親切口吻，幫助孩子理解為什麼不適合瀏覽。
+
+輸出 JSON：
 {
   "risk_level": "high",
   "confidence": "high/medium/low",
   "risk_score": 70-100,
-  "threat_summary": "一句話總結（例如：此網頁包含不適合兒童的內容）",
-  "evidence_analysis": ["內容證據1", "內容證據2", ...],
-  "why_unsafe": "詳細解釋為什麼不適合兒童（200-300字，用小朋友聽得懂的語言）",
-  "technical_details": {
-    "detected_by": ["內容分析"],
-    "threat_types": ["色情", "暴力", ...],
-    "indicators": []
-  },
-  "content_risk_type": "色情/暴力/其他不當內容",
-  "user_warnings": ["警告1", "警告2", ...],
-  "recommendations": ["建議1", "建議2", ...],
-  "uncertainties": []
-}
+  "threat_summary": "一句話總結，不超過 30 字",
+  "evidence_analysis": ["具體證據，每條不同角度，不超過 30 字"],
+  "why_unsafe": "解釋為什麼不適合兒童，限 150 字，不得重複語句",
+  "technical_details": {"detected_by": ["內容分析"], "threat_types": ["類型"], "indicators": []},
+  "content_risk_type": "色情/暴力/其他",
+  "user_warnings": ["簡短警告，每條不同"],
+  "recommendations": ["具體建議，每條不同"],
+  "uncertainties": [],
+  "quiz": {
+    "question": "情境題",
+    "hint": "提示",
+    "type": "single_choice",
+    "options": [{"id": "A", "text": "選項A"}, {"id": "B", "text": "選項B"}, {"id": "C", "text": "選項C"}, {"id": "D", "text": "選項D"}],
+    "correct_answer": "C",
+    "explanations": {"A": "說明", "B": "說明", "C": "說明", "D": "說明"},
+    "learning_point": "學習重點",
+    "difficulty": "easy"
+  }
+}"""
 
-並生成創意選擇題（quiz 欄位），幫助小朋友學習「如何分辨不適當的網站」或「遇到不當內容該怎麼辦」。格式與資安分析相同。"""
 
-
-class LLMAnalyzerService:
-    def __init__(self) -> None:
+class ThreatAnalysisService:
+    def __init__(self, settings: Settings) -> None:
         self._client = AsyncOpenAI(
-            base_url=Config.FEATHERLESS_BASE_URL,
-            api_key=Config.FEATHERLESS_API_KEY,
+            base_url=settings.featherless_base_url,
+            api_key=settings.featherless_api_key,
         )
-        self.model = Config.FEATHERLESS_MODEL
-        self.temperature = Config.FEATHERLESS_TEMPERATURE
-        self.max_tokens = Config.FEATHERLESS_MAX_TOKENS
-
-    # ── Prompt builders ──
+        self.model = settings.featherless_model
+        self.temperature = settings.featherless_temperature
+        self.max_tokens = settings.featherless_max_tokens
+        self.top_p = settings.featherless_top_p
 
     @staticmethod
     def _build_phishing_user_prompt(
@@ -217,8 +223,6 @@ URL: {target_url}
 
 請輸出結構化 JSON，包含 why_unsafe、recommendations、quiz 等，用兒童輔導員的語氣。"""
 
-    # ── Fallbacks ──
-
     @staticmethod
     def _fallback_phishing(security_results: dict[str, Any]) -> dict[str, Any]:
         risk = security_results.get("overall_risk", "inconclusive")
@@ -253,30 +257,47 @@ URL: {target_url}
     @staticmethod
     def _fallback_content_risk(content_classification: dict[str, Any]) -> dict[str, Any]:
         primary = content_classification.get("primary_label", "不當內容")
+        labels = content_classification.get("labels", [primary])
+        explanation = content_classification.get("explanation", "")
+        label_text = "、".join(labels[:3]) if labels else primary
+
+        evidence = [
+            f"網頁內容被標記為「{primary}」類型",
+            f"包含以下分類標籤：{label_text}",
+        ]
+        if explanation:
+            evidence.append(f"分析說明：{explanation[:50]}")
+
         return {
             "risk_level": "high",
             "confidence": "medium",
             "risk_score": 80,
-            "threat_summary": f"此網頁可能包含不適合兒童的內容（{primary}）",
-            "evidence_analysis": [f"內容分類：{primary}"],
-            "why_unsafe": f"根據分析，這個網頁可能含有{primary}等內容，不適合 18 歲以下的兒童與青少年瀏覽。建議不要點擊，如有疑問可與家長或老師討論。",
+            "threat_summary": f"此網頁含有{primary}內容，不適合兒童瀏覽",
+            "evidence_analysis": evidence,
+            "why_unsafe": (
+                f"這個網站含有「{label_text}」的內容，是專門給大人看的。"
+                "小朋友的身心還在成長，看到這些內容可能會感到不舒服或困惑。"
+                "網路上有很多好玩又有趣的東西，我們可以一起找更適合的網站！"
+                "如果不小心看到，記得馬上關掉，然後跟爸媽或老師說一聲喔。"
+            ),
             "technical_details": {
                 "detected_by": ["內容分析"],
-                "threat_types": content_classification.get("labels", [primary]),
+                "threat_types": labels[:4],
                 "indicators": [],
             },
             "content_risk_type": primary,
-            "user_warnings": ["此網站可能含有不適合兒童的內容"],
+            "user_warnings": [
+                f"此網站含有{primary}等內容，不適合 18 歲以下瀏覽",
+                "瀏覽此類網站可能影響身心健康",
+            ],
             "recommendations": [
-                "不要點擊或瀏覽此連結",
-                "如不小心點進去，請立即關閉並告訴家長或老師",
-                "使用網路時保持警覺，遇到奇怪內容要及時求助",
+                "立即關閉此網頁，不要繼續瀏覽",
+                "告訴爸媽或老師你看到了什麼",
+                "使用兒童安全搜尋引擎找有趣的內容",
             ],
             "uncertainties": [],
             "fallback_mode": True,
         }
-
-    # ── Public API ──
 
     async def analyze_phishing(
         self, target_url: str, security_results: dict[str, Any]
@@ -307,6 +328,65 @@ URL: {target_url}
         result["content_risk_type"] = content_classification.get("primary_label", "不當內容")
         return result
 
+    @staticmethod
+    def _is_repetitive(text: str, threshold: float = 0.4) -> bool:
+        """Detect degenerate repetitive output from small LLMs."""
+        if not text or len(text) < 60:
+            return False
+        sentences = [s.strip() for s in re.split(r'[。！？\.\!\?]', text) if len(s.strip()) > 8]
+        if len(sentences) < 2:
+            return False
+        unique = set(sentences)
+        return (len(unique) / len(sentences)) < threshold
+
+    @staticmethod
+    def _clean_field(text: str, max_length: int = 300) -> str:
+        """Remove repeated sentences and trim to max_length."""
+        if not text:
+            return text
+        sentences = re.split(r'(?<=[。！？\.\!\?])', text)
+        seen: set[str] = set()
+        cleaned: list[str] = []
+        for s in sentences:
+            s = s.strip()
+            if not s or s in seen:
+                continue
+            seen.add(s)
+            cleaned.append(s)
+        result = "".join(cleaned)
+        if len(result) > max_length:
+            result = result[:max_length - 3] + "..."
+        return result
+
+    def _sanitize_output(
+        self, analysis: dict[str, Any], fallback_fn: Any
+    ) -> dict[str, Any]:
+        """Replace repetitive LLM fields with fallback content."""
+        why = analysis.get("why_unsafe", "")
+        if self._is_repetitive(why):
+            logger.warning("Detected repetitive why_unsafe, using fallback")
+            fb = fallback_fn()
+            analysis["why_unsafe"] = fb.get("why_unsafe", "")
+            analysis["user_warnings"] = fb.get("user_warnings", analysis.get("user_warnings", []))
+
+        summary = analysis.get("threat_summary", "")
+        if self._is_repetitive(summary):
+            fb = fallback_fn()
+            analysis["threat_summary"] = fb.get("threat_summary", summary[:80])
+
+        evidence = analysis.get("evidence_analysis", [])
+        if isinstance(evidence, list) and len(evidence) > 1:
+            unique_evidence: list[str] = []
+            seen: set[str] = set()
+            for e in evidence:
+                e_clean = str(e).strip()
+                if e_clean and e_clean not in seen:
+                    seen.add(e_clean)
+                    unique_evidence.append(e_clean)
+            analysis["evidence_analysis"] = unique_evidence or evidence[:1]
+
+        return analysis
+
     async def _call_llm(
         self,
         system_prompt: str,
@@ -322,11 +402,14 @@ URL: {target_url}
                 ],
                 temperature=self.temperature,
                 max_tokens=self.max_tokens,
-                top_p=0.9,
+                top_p=self.top_p,
+                frequency_penalty=1.2,
+                presence_penalty=0.6,
                 response_format={"type": "json_object"},
             )
             content = resp.choices[0].message.content or ""
             analysis: dict[str, Any] = json.loads(content)
+            analysis = self._sanitize_output(analysis, fallback_fn)
             analysis["llm_metadata"] = {
                 "model": self.model,
                 "usage": {

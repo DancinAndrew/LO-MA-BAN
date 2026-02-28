@@ -6,6 +6,69 @@ const SESSION_KEY_WARNED = 'scoutnet_warned_tab_url'
 const SESSION_KEY_PENDING = 'scoutnet_pending_navigation'
 const SESSION_KEY_BYPASS = 'scoutnet_bypass_tab_url'
 
+// ── URL scan cache (avoid repeated API calls for same URL) ──
+
+const CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutes
+const scanCache = new Map<string, { data: SiteData; ts: number }>()
+
+function getCachedScan(url: string): SiteData | null {
+  const entry = scanCache.get(url)
+  if (!entry) return null
+  if (Date.now() - entry.ts > CACHE_TTL_MS) {
+    scanCache.delete(url)
+    return null
+  }
+  return entry.data
+}
+
+function setCachedScan(url: string, data: SiteData) {
+  scanCache.set(url, { data, ts: Date.now() })
+  if (scanCache.size > 200) {
+    const oldest = scanCache.keys().next().value
+    if (oldest) scanCache.delete(oldest)
+  }
+}
+
+async function getSiteDataCached(url: string): Promise<SiteData> {
+  const cached = getCachedScan(url)
+  if (cached) {
+    console.log('[LO-MA-BAN] cache hit:', url)
+    return cached
+  }
+  const data = await getSiteData(url)
+  setCachedScan(url, data)
+  return data
+}
+
+// ── Known-safe domains: skip scanning entirely ──
+
+const SAFE_DOMAINS = new Set([
+  'google.com', 'www.google.com', 'google.com.tw',
+  'youtube.com', 'www.youtube.com',
+  'wikipedia.org', 'en.wikipedia.org', 'zh.wikipedia.org',
+  'github.com',
+  'stackoverflow.com',
+  'microsoft.com', 'www.microsoft.com',
+  'apple.com', 'www.apple.com',
+  'mozilla.org', 'www.mozilla.org',
+  'education.gov.tw', 'www.edu.tw',
+])
+
+function isSafeDomain(url: string): boolean {
+  try {
+    const hostname = new URL(url).hostname
+    if (SAFE_DOMAINS.has(hostname)) return true
+    const parts = hostname.split('.')
+    if (parts.length > 2) {
+      const root = parts.slice(-2).join('.')
+      if (SAFE_DOMAINS.has(root)) return true
+    }
+    return false
+  } catch {
+    return false
+  }
+}
+
 function isRisky(level: SiteData['riskLevel']): boolean {
   return level === 'high' || level === 'medium'
 }
@@ -56,19 +119,34 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       }
 
       try {
+        if (isSafeDomain(targetUrl)) {
+          sendResponse({ ok: true, decision: 'allow' })
+          await chrome.tabs.update(tabId, { url: targetUrl })
+          return
+        }
+
+        const cached = getCachedScan(targetUrl)
+        if (cached && !isRisky(cached.riskLevel)) {
+          sendResponse({ ok: true, decision: 'allow' })
+          await chrome.tabs.update(tabId, { url: targetUrl })
+          return
+        }
+
         const warnedKey = `${tabId}:${targetUrl}`
         await chrome.storage.session.set({ [SESSION_KEY_WARNED]: warnedKey })
         await setPendingNavigation({
           tabId,
           targetUrl,
           sourceUrl,
-          siteData: null,
+          siteData: cached ?? null,
           createdAt: Date.now(),
         })
         await redirectTabToWarningPage(tabId)
-        sendResponse({ ok: true, decision: 'warn' })
+        sendResponse({ ok: true, decision: cached ? 'warn' : 'loading' })
 
-        const siteData = await getSiteData(targetUrl)
+        if (cached) return
+
+        const siteData = await getSiteDataCached(targetUrl)
         if (isRisky(siteData.riskLevel)) {
           await setPendingNavigation({
             tabId,
@@ -146,8 +224,13 @@ chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
   if (url.startsWith(chrome.runtime.getURL(''))) return
 
   try {
+    if (isSafeDomain(url)) return
+
     const { [SESSION_KEY_BYPASS]: bypass } = await chrome.storage.session.get(SESSION_KEY_BYPASS)
     if (bypass === `${tabId}:${url}`) return
+
+    const cached = getCachedScan(url)
+    if (cached && !isRisky(cached.riskLevel)) return
 
     let sourceUrl: string | undefined
     try {
@@ -169,6 +252,13 @@ chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
     const { [SESSION_KEY_WARNED]: lastWarned } = await chrome.storage.session.get(SESSION_KEY_WARNED)
     if (lastWarned === warnedKey) return
     await chrome.storage.session.set({ [SESSION_KEY_WARNED]: warnedKey })
+
+    if (cached && isRisky(cached.riskLevel)) {
+      const pending: PendingNavigation = { tabId, targetUrl: url, sourceUrl, siteData: cached, createdAt: Date.now() }
+      await setPendingNavigation(pending)
+      await redirectTabToWarningPage(tabId)
+      return
+    }
 
     const pending: PendingNavigation = {
       tabId,
@@ -193,7 +283,7 @@ chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
       await redirectTabToWarningPage(tabId)
     }
 
-    const siteData = await getSiteData(url)
+    const siteData = await getSiteDataCached(url)
 
     if (showPopupOnPage) {
       chrome.tabs.sendMessage(tabId, { type: 'HIDE_DETECTING' }).catch(() => {})
