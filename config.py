@@ -8,19 +8,7 @@ load_dotenv(Path(__file__).parent / ".env")
 
 class Config:
     # ========== API 金鑰 ==========
-    EXA_API_KEY = os.getenv("EXA_API_KEY", "")
     FEATHERLESS_API_KEY = os.getenv("FEATHERLESS_API_KEY", "")
-    
-    # ========== Exa 設定 ==========
-    EXA_MAX_RESULTS = int(os.getenv("EXA_MAX_RESULTS", "20"))
-    EXA_MAX_AGE_HOURS = int(os.getenv("EXA_MAX_AGE_HOURS", "168"))
-    EXA_LIVECRAWL_TIMEOUT = int(os.getenv("EXA_LIVECRAWL_TIMEOUT", "5000"))
-    
-    SECURITY_DOMAINS = [
-        "virustotal.com", "phishtank.com", "urlhaus.abuse.ch",
-        "threatcrowd.org", "alienvault.com", "scamadviser.com", "whois.com"
-    ]
-    HIGHLIGHTS_QUERY = "phishing detection, security verdict, malware analysis, scam report, domain reputation"
     
     # ========== Featherless 設定 ==========
     FEATHERLESS_API_URL = "https://api.featherless.ai/v1/chat/completions"
@@ -34,6 +22,32 @@ class Config:
     
     # ========== 預設值 ==========
     DEFAULT_TARGET_URL = os.getenv("DEFAULT_TARGET_URL", "")
+
+    # === Security API Settings ===
+    API_TIMEOUT: int = 30
+    
+    # VirusTotal API v3
+    VIRUSTOTAL_API_KEY: str = os.getenv("VIRUSTOTAL_API_KEY", "")
+    VIRUSTOTAL_BASE_URL: str = "https://www.virustotal.com/api/v3"
+    
+    # URLhaus API
+    URLHAUS_BASE_URL: str = "https://urlhaus-api.abuse.ch/v1"
+    URLHAUS_AUTH_KEY: str = os.getenv("URLHAUS_AUTH_KEY", "")
+    
+    # PhishTank API
+    PHISHTANK_API_KEY: str = os.getenv("PHISHTANK_API_KEY", "")
+    PHISHTANK_BASE_URL: str = "https://checkurl.phishtank.com/checkurl"
+    
+    # Google Safe Browsing API v4
+    GOOGLE_SAFE_BROWSING_API_KEY: str = os.getenv("GOOGLE_SAFE_BROWSING_API_KEY", "")
+    GOOGLE_SAFE_BROWSING_BASE_URL: str = "https://safebrowsing.googleapis.com/v4"
+    
+    # === Featherless AI Settings ===
+    FEATHERLESS_API_URL: str = os.getenv("FEATHERLESS_API_URL", "https://api.featherless.ai/v1/chat/completions")
+    FEATHERLESS_API_KEY: str = os.getenv("FEATHERLESS_API_KEY", "")
+    FEATHERLESS_MODEL: str = os.getenv("FEATHERLESS_MODEL", "Qwen2.5-7B-Instruct")
+    FEATHERLESS_TEMPERATURE: float = 0.1
+    FEATHERLESS_MAX_TOKENS: int = 2000
     
     @classmethod
     def setup_output_dir(cls):
