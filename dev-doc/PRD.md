@@ -88,15 +88,16 @@
     *   *(回答錯誤)* -> 給予解釋 -> 再次提問或強制阻擋。
 6.  **緊急情況** -> 隨時點擊「安心按鈕」 -> 截圖發送 -> 確認回饋。
 
-:::spoiler
+<details>
+  <summary>Spoiler warning</summary>
+
 ### User Flow Diagram
 ![user_flow_diagram](user_flow_diagram.jpg)
-
 
 ### Mermaid Code
 Online Editor: https://mermaid.live/edit
 
-```mermaid=
+```mermaid
 graph TD
     %% 節點定義與文字內容
     User[User]
@@ -145,8 +146,8 @@ graph TD
     style Judge fill:#bdf7ed,stroke:#5bcbbb,stroke-width:1px
     style Enter2 fill:#bdf7ed,stroke:#5bcbbb,stroke-width:1px
 ```
+</details>
 
-:::
 
 
 ## 7. 開發階段規劃 (Roadmap)
