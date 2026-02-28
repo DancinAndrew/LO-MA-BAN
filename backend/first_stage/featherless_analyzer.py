@@ -8,7 +8,7 @@ import requests
 import logging
 from typing import Dict, List, Optional
 from pathlib import Path
-from config import Config
+from shared.config import Config
 
 logger = logging.getLogger(__name__)
 
@@ -22,26 +22,17 @@ class FeatherlessAnalyzer:
         self.timeout = 120
     
     def build_analysis_prompt(self, target_url: str, security_results: Dict) -> List[Dict]:
-        """
-        建構給 LLM 的分析 prompt（含安全檢查）
-        """
-        # 提取關鍵警告資訊
         critical_flags = security_results.get('critical_flags', [])
         warnings = security_results.get('warnings', [])
         raw_results = security_results.get('raw_results', [])
         
-        # 🔧 安全提取證據（避免 unhashable type 錯誤）
         evidence_items = []
         for result in raw_results:
             if not result.get('found'):
                 continue
             source = result['source']
-            
-            # threat_type
             if result.get('threat_type'):
                 evidence_items.append(f"• [{source}] 威脅類型: {result['threat_type']}")
-            
-            # categories（關鍵修正）
             categories = result.get('categories')
             if categories:
                 if isinstance(categories, list):
@@ -50,22 +41,17 @@ class FeatherlessAnalyzer:
                 elif isinstance(categories, dict):
                     cats = list(categories.keys())[:3]
                     evidence_items.append(f"• [{source}] 分類: {', '.join(cats)}")
-            
-            # stats
             stats = result.get('stats')
             if stats and isinstance(stats, dict):
                 mal = stats.get('malicious', 0)
                 sus = stats.get('suspicious', 0)
                 if mal > 0 or sus > 0:
                     evidence_items.append(f"• [{source}] 惡意:{mal} 可疑:{sus}")
-            
-            # tags
             tags = result.get('tags')
             if tags:
                 tag_list = tags if isinstance(tags, list) else [str(tags)]
                 evidence_items.append(f"• [{source}] 標籤: {', '.join(tag_list[:3])}")
         
-        # 系統提示（18 歲以下兒童輔導員視角）
         system_prompt = """你是一位關心 18 歲以下兒童網路安全的輔導員，用親切、易懂的方式幫助孩子理解網路風險。
 
         請基於提供的威脅情報平台檢測結果，分析目標網址的風險。用「小朋友聽得懂」的語言解釋，避免太多專業術語。
@@ -75,6 +61,9 @@ class FeatherlessAnalyzer:
         2. 用簡單的話解釋為什麼這個網址有危險
         3. 提供具體、實用的建議（適合兒童與家長）
         4. 如果證據不足，請明確說明不確定性
+        5. **釣魚網站專屬**：
+           - 根據釣魚網址的樣貌，推測 2～4 個「使用者可能想去的正確/官方網址」。例如：paypa1.com → paypal.com；allegrolokalnie.pl-xxx.cfd → allegrolokalnie.pl。填入 likely_intended_urls 陣列。
+           - 再根據推測的網站類型（購物、金融、社群等），推薦 2～4 個「同類型、可替代的合法網站」。例如：若仿冒 allegrolokalnie（購物），可推薦蝦皮、Amazon、PChome 等；若仿冒 PayPal，可推薦其他正規支付平台。填入 alternative_recommendations 陣列。
 
         JSON 欄位：
         {
@@ -82,6 +71,12 @@ class FeatherlessAnalyzer:
         "confidence": "high/medium/low", 
         "risk_score": 0-100,
         "threat_summary": "一句話總結主要威脅",
+        "likely_intended_urls": ["網址1", "網址2", ...],
+        "intended_url_reason": "簡短說明為何推斷為這些網址（50字內）",
+        "alternative_recommendations": [
+            {"name": "蝦皮購物", "url": "https://shopee.tw"},
+            {"name": "Amazon", "url": "https://www.amazon.com"}
+        ],
         "evidence_analysis": ["證據1", "證據2", ...],
         "why_unsafe": "詳細解釋為什麼不安全（200-300字）",
         "technical_details": {
@@ -128,7 +123,6 @@ class FeatherlessAnalyzer:
         }
         """
         
-        # 用戶提示
         critical_text = "\n".join(f"- {f['source']}: {f.get('threat_type') or '未知威脅'}" for f in critical_flags) or "無重大警告"
         warning_text = "\n".join(f"- {w['source']}: {str(w.get('reason', '未知原因'))[:100]}" for w in warnings) or "無次要警告"
         evidence_text = "\n".join(evidence_items) or "• 未偵測到具體威脅指標"
@@ -152,7 +146,8 @@ class FeatherlessAnalyzer:
     🔍 詳細證據:
     {evidence_text}
 
-    請基於以上資訊，輸出結構化的 JSON 分析結果。"""
+    請基於以上資訊，輸出結構化的 JSON 分析結果。
+    若判定為釣魚網站，請務必填寫 likely_intended_urls、intended_url_reason 與 alternative_recommendations。"""
         
         return [
             {"role": "system", "content": system_prompt},
@@ -160,17 +155,13 @@ class FeatherlessAnalyzer:
         ]
     
     def analyze(self, target_url: str, security_results: Dict) -> Dict:
-        """
-        呼叫 Featherless API 進行深度分析
-        """
         logger.info("🤖 開始 Featherless AI 深度分析...")
-        
         messages = self.build_analysis_prompt(target_url, security_results)
         
         payload = {
             "model": self.model,
             "messages": messages,
-            "temperature": 0.1,  # 低溫度確保輸出穩定
+            "temperature": 0.1,
             "max_tokens": 800,
             "top_p": 0.9,
             "frequency_penalty": 0,
@@ -178,7 +169,6 @@ class FeatherlessAnalyzer:
             "stream": False,
             "response_format": {"type": "json_object"}
         }
-        
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {self.api_key}"
@@ -186,16 +176,10 @@ class FeatherlessAnalyzer:
         
         try:
             response = requests.post(
-                self.api_url,
-                headers=headers,
-                json=payload,
-                timeout=self.timeout
+                self.api_url, headers=headers, json=payload, timeout=self.timeout
             )
             response.raise_for_status()
-            
             result = response.json()
-            
-            # 解析 LLM 回應
             if 'choices' in result:
                 content = result['choices'][0]['message']['content']
                 analysis = json.loads(content)
@@ -208,7 +192,6 @@ class FeatherlessAnalyzer:
             else:
                 logger.error(f"Unexpected response format: {result}")
                 return self._fallback_analysis(security_results)
-                
         except requests.RequestException as e:
             logger.error(f"Featherless API request failed: {e}")
             return self._fallback_analysis(security_results)
@@ -219,10 +202,6 @@ class FeatherlessAnalyzer:
     def build_content_risk_prompt(
         self, target_url: str, page_content: str, content_classification: Dict
     ) -> List[Dict]:
-        """
-        建構「內容風險」（情色、暴力等不適合兒童）的分析 prompt
-        輸出格式與 build_analysis_prompt 一致，供 ReportGenerator 使用
-        """
         labels = content_classification.get("labels", [])
         primary = content_classification.get("primary_label", "不明")
         explanation = content_classification.get("explanation", "")
@@ -278,10 +257,6 @@ URL: {target_url}
     def analyze_content_risk(
         self, target_url: str, page_content: str, content_classification: Dict
     ) -> Dict:
-        """
-        針對「內容風險」（情色、暴力等）呼叫 Featherless 進行深度分析
-        回傳與 analyze() 相同的 JSON 結構，供 ReportGenerator 使用
-        """
         logger.info("🤖 開始 Featherless 內容風險分析（兒童輔導員模式）...")
         messages = self.build_content_risk_prompt(target_url, page_content, content_classification)
         payload = {
@@ -311,7 +286,6 @@ URL: {target_url}
         return self._fallback_content_risk(content_classification)
 
     def _fallback_content_risk(self, content_classification: Dict) -> Dict:
-        """內容風險分析的降級輸出"""
         primary = content_classification.get("primary_label", "不當內容")
         return {
             "risk_level": "high",
@@ -337,9 +311,6 @@ URL: {target_url}
         }
 
     def _fallback_analysis(self, security_results: Dict) -> Dict:
-        """
-        當 LLM 呼叫失敗時的降級處理
-        """
         risk = security_results.get('overall_risk', 'inconclusive')
         critical = security_results.get('critical_flags', [])
         
@@ -348,6 +319,9 @@ URL: {target_url}
             "confidence": "low",
             "risk_score": security_results.get('risk_score', 50),
             "threat_summary": "無法進行深度分析，請參考原始檢測結果",
+            "likely_intended_urls": [],
+            "intended_url_reason": None,
+            "alternative_recommendations": [],
             "evidence_analysis": [f"• {c['source']}: {c.get('threat_type', '未知')}" for c in critical],
             "why_unsafe": "分析服務暫時無法提供詳細說明。建議小朋友先不要點擊這個連結，可以請爸媽或老師幫忙用其他安全工具再檢查一次喔！",
             "technical_details": {

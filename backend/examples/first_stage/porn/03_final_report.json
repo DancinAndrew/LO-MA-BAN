@@ -1,0 +1,224 @@
+{
+  "report_metadata": {
+    "target_url": "https://cn.pornhub.com/",
+    "target_domain": "cn.pornhub.com",
+    "target_tld": "com",
+    "timestamp": "2026-02-28T20:45:40.035395",
+    "risk": {
+      "level": "high",
+      "score": 95,
+      "icon": "🔴",
+      "color": "#f97316",
+      "label": "很危險"
+    },
+    "confidence": {
+      "level": "high",
+      "icon": "✅",
+      "label": "很確定"
+    }
+  },
+  "kid_friendly_summary": {
+    "title": "🔴 很危險！",
+    "simple_message": "⚠️ 這個網站有不適合小朋友的內容，建議不要訪問",
+    "short_explanation": "這個網站有很多大人看的東西，比如裸體和親密行為的照片和視頻。這些內容對小孩子來說太過分了，可能會讓你感到害怕或者困惑。而且這些內容也不安全，可能會讓壞人找到你。所以我們要避免去看這樣的網站。",
+    "emoji_reaction": "🔴",
+    "action_verb": "不要點"
+  },
+  "evidence_cards": [
+    {
+      "id": "evidence_1",
+      "icon": "🔍",
+      "title": "網頁標籤為色情和成人...",
+      "content": "網頁標籤為不適合小朋友看的內容和大人才能看的內容",
+      "severity": "medium",
+      "expandable": false
+    },
+    {
+      "id": "evidence_2",
+      "icon": "🔍",
+      "title": "網頁內容包含多個色情...",
+      "content": "網頁內容包含多個不適合小朋友看的內容視頻和圖片",
+      "severity": "medium",
+      "expandable": false
+    },
+    {
+      "id": "evidence_3",
+      "icon": "🔍",
+      "title": "網頁提供色情服務和試...",
+      "content": "網頁提供不適合小朋友看的內容服務和試用期",
+      "severity": "medium",
+      "expandable": false
+    }
+  ],
+  "pattern_analysis": {
+    "tld_analysis": {
+      "tld": "com",
+      "is_common": true,
+      "is_high_risk": false,
+      "kid_message": "網址的尾巴 `.com` 是常見的，比較放心"
+    },
+    "domain_structure": {
+      "length": 14,
+      "has_numbers": false,
+      "has_hyphens": false,
+      "kid_message": "域名簡單好記，"
+    },
+    "visual_summary": {
+      "url_parts": [
+        {
+          "part": "https://",
+          "label": "協定",
+          "safe": true
+        },
+        {
+          "part": "cn.pornhub.com",
+          "label": "域名",
+          "safe": true
+        },
+        {
+          "part": "//",
+          "label": "路徑",
+          "safe": true
+        }
+      ]
+    }
+  },
+  "interactive_quiz": {
+    "enabled": true,
+    "question": "🤔 如果你不小心點進了一個「不適合小朋友看」的網站，第一步應該做什麼？",
+    "hint": "記得：不要慌張，找大人幫忙！",
+    "type": "single_choice",
+    "options": [
+      {
+        "id": "A",
+        "text": "繼續看下去，反正都點進來了",
+        "is_correct": false,
+        "explanation": "這樣會看到更多不適當的內容，要趕快關掉喔！",
+        "feedback_icon": "❌"
+      },
+      {
+        "id": "B",
+        "text": "馬上關掉網頁，然後告訴爸媽或老師",
+        "is_correct": true,
+        "explanation": "答對啦！關掉並告訴大人是最好的做法！",
+        "feedback_icon": "✅"
+      },
+      {
+        "id": "C",
+        "text": "偷偷存起來，不要讓別人知道",
+        "is_correct": false,
+        "explanation": "遇到這種情況要勇敢求助，大人會幫忙你的！",
+        "feedback_icon": "❌"
+      },
+      {
+        "id": "D",
+        "text": "分享給同學一起看",
+        "is_correct": false,
+        "explanation": "不適當的內容不應該分享，要保護自己也保護同學喔！",
+        "feedback_icon": "❌"
+      }
+    ],
+    "correct_answer_id": "B",
+    "learning_point": "遇到不適當的網站：關掉 → 告訴大人 → 不要害怕求助！",
+    "difficulty": "easy"
+  },
+  "safety_tips": [
+    {
+      "id": "tip_1",
+      "icon": "🚫",
+      "tip": "只看適合你的內容，比如卡通、故事書或教育性的網站",
+      "why": "可能連到不適合小朋友的網站",
+      "action_text": "記住囉！"
+    },
+    {
+      "id": "tip_2",
+      "icon": "👀",
+      "tip": "如果遇到不適合的內容，立刻離開那個網站",
+      "why": "保護自己的眼睛和心情",
+      "action_text": "記住囉！"
+    },
+    {
+      "id": "tip_3",
+      "icon": "👨‍👩‍👧",
+      "tip": "和父母或老師一起探索有趣的網站，他們會教你哪些是好的，哪些是不好的",
+      "why": "大人可以幫你判斷",
+      "action_text": "記住囉！"
+    },
+    {
+      "id": "tip_4",
+      "icon": "📱",
+      "tip": "用網路時保持警覺",
+      "why": "不是所有網站都適合小朋友",
+      "action_text": "記住囉！"
+    }
+  ],
+  "next_steps": [
+    {
+      "action": "❌ 不要點擊此連結",
+      "priority": "high",
+      "icon": "🚫"
+    },
+    {
+      "action": "🔍 用 VirusTotal 再檢查一次",
+      "priority": "medium",
+      "icon": "🔎",
+      "link": "https://www.virustotal.com"
+    },
+    {
+      "action": "👨‍👩‍👧 問爸媽或老師",
+      "priority": "high",
+      "icon": "🗣️"
+    },
+    {
+      "action": "🌐 直接輸入官方網址訪問",
+      "priority": "medium",
+      "icon": "✅"
+    }
+  ],
+  "raw_analysis": {
+    "risk_level": "high",
+    "confidence": "high",
+    "risk_score": 95,
+    "threat_summary": "此網頁包含大量色情內容，完全不适合儿童浏览。",
+    "evidence_analysis": [
+      "網頁標籤為色情和成人內容",
+      "網頁內容包含多個色情視頻和圖片",
+      "網頁提供色情服務和試用期"
+    ],
+    "why_unsafe": "這個網站有很多大人看的東西，比如裸體和親密行為的照片和視頻。這些內容對小孩子來說太過分了，可能會讓你感到害怕或者困惑。而且這些內容也不安全，可能會讓壞人找到你。所以我們要避免去看這樣的網站。",
+    "technical_details": {
+      "detected_by": [
+        "內容分析"
+      ],
+      "threat_types": [
+        "色情"
+      ],
+      "indicators": [
+        "色情標籤",
+        "色情視頻",
+        "色情圖片"
+      ]
+    },
+    "content_risk_type": "色情",
+    "user_warnings": [
+      "不要點擊任何看起来像色情的內容",
+      "如果看到不適合的內容，立刻告訴父母或老師",
+      "不要留下任何个人信息，比如名字、地址或學校名稱"
+    ],
+    "recommendations": [
+      "只看適合你的內容，比如卡通、故事書或教育性的網站",
+      "如果遇到不適合的內容，立刻離開那個網站",
+      "和父母或老師一起探索有趣的網站，他們會教你哪些是好的，哪些是不好的",
+      "使用家长控制工具来保护自己不受不适当内容的影响"
+    ],
+    "uncertainties": [],
+    "llm_metadata": {
+      "model": "Qwen/Qwen2.5-7B-Instruct",
+      "usage": {
+        "prompt_tokens": 1412,
+        "completion_tokens": 345,
+        "total_tokens": 1757
+      }
+    }
+  }
+}

@@ -6,8 +6,7 @@
 2. 將內容送至 Featherless AI 判斷網頁屬於什麼標籤
 
 使用方式：
-  python url_crawl_and_classify.py "https://example.com"
-  python url_crawl_and_classify.py "https://allegrolokalnie.pl-oferta-id-133457.cfd"
+  python -m tools.url_crawl_and_classify "https://example.com"
 """
 import json
 import sys
@@ -16,8 +15,9 @@ from pathlib import Path
 from typing import Optional, Tuple
 from dotenv import load_dotenv
 
-load_dotenv(Path(__file__).parent / ".env")
-from config import Config
+load_dotenv(Path(__file__).parent.parent / ".env")
+
+from shared.config import Config
 
 
 # ========== 方法一：Exa API 直接抓取 URL 內容 ==========
@@ -89,22 +89,16 @@ def fetch_url_content_exa(target_url: str) -> Tuple[Optional[str], Optional[str]
         return None, "EXA_API_KEY 未設定，請在 .env 中設定"
 
     try:
-        # 第一次：偏好快取 fallback，增加 livecrawl 超時時間
         content, err, tag = _fetch_exa_contents(
-            target_url,
-            max_age_hours=24,
-            livecrawl_timeout_ms=25000,
+            target_url, max_age_hours=24, livecrawl_timeout_ms=25000,
         )
         if content:
             return content, None
         if tag != "CRAWL_LIVECRAWL_TIMEOUT":
             return None, err or "Exa 爬取失敗"
 
-        # 超時時以僅快取模式重試
         content, retry_err, _ = _fetch_exa_contents(
-            target_url,
-            max_age_hours=-1,
-            livecrawl_timeout_ms=None,
+            target_url, max_age_hours=-1, livecrawl_timeout_ms=None,
         )
         if content:
             return content, None
@@ -113,7 +107,7 @@ def fetch_url_content_exa(target_url: str) -> Tuple[Optional[str], Optional[str]
         return None, f"Exa API 請求失敗: {e}"
 
 
-# ========== 方法二：Exa API 搜尋網路上關於此 URL 的討論（可選） ==========
+# ========== 方法二：Exa API 搜尋網路上關於此 URL 的討論 ==========
 def search_url_context_exa(target_url: str, num_results: int = 5) -> Tuple[Optional[str], Optional[str]]:
     """
     使用 Exa API /search 端點搜尋關於此 URL 的討論
@@ -131,7 +125,6 @@ def search_url_context_exa(target_url: str, num_results: int = 5) -> Tuple[Optio
         "numResults": num_results,
         "contents": {"text": True, "summary": True},
     }
-
     headers = {
         "x-api-key": api_key,
         "Content-Type": "application/json",
@@ -160,9 +153,6 @@ def search_url_context_exa(target_url: str, num_results: int = 5) -> Tuple[Optio
 
 # ========== Featherless AI 標籤分類 ==========
 def classify_with_featherless(url: str, page_content: str) -> dict:
-    """
-    將網頁內容送至 Featherless AI 判斷屬於什麼標籤
-    """
     api_url = Config.FEATHERLESS_API_URL
     api_key = Config.FEATHERLESS_API_KEY
     model = Config.FEATHERLESS_MODEL
@@ -170,7 +160,6 @@ def classify_with_featherless(url: str, page_content: str) -> dict:
     if not api_key:
         raise ValueError("FEATHERLESS_API_KEY 未設定，請在 .env 中設定")
 
-    # 若內容過長，截斷以節省 token（可依需求調整）
     max_chars = 8000
     if len(page_content) > max_chars:
         page_content = page_content[:max_chars] + "\n\n[... 內容已截斷 ...]"
@@ -221,7 +210,6 @@ URL: {url}
         "stream": False,
         "response_format": {"type": "json_object"},
     }
-
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {api_key}",
@@ -245,16 +233,13 @@ URL: {url}
 
 # ========== Main ==========
 def main():
-    # 可改為你要爬的網址，例如 "https://xxx.com"
     target_url = sys.argv[1] if len(sys.argv) > 1 else "https://example.com"
     target_url = target_url.strip()
-
-    use_search = "--search" in sys.argv  # 可選：改用搜尋模式
+    use_search = "--search" in sys.argv
 
     print(f"🎯 目標網址: {target_url}")
     print()
 
-    # Step 1: 爬取內容
     content = None
     err = None
     if use_search:
@@ -263,7 +248,6 @@ def main():
     else:
         print("📡 使用 Exa 直接抓取網頁內容...")
         content, err = fetch_url_content_exa(target_url)
-        # 直接抓取失敗時，自動改用搜尋模式取得關於此 URL 的討論/描述
         if err and ("CRAWL_LIVECRAWL_TIMEOUT" in str(err) or "CRAWL_NOT_FOUND" in str(err)):
             print(f"   ⚠️ 直接抓取失敗 ({err})，改以 Exa 搜尋模式嘗試...")
             content, err = search_url_context_exa(target_url)
@@ -275,7 +259,6 @@ def main():
     print(f"✅ 取得內容，共 {len(content)} 字")
     print()
 
-    # Step 2: Featherless AI 分類
     print("🤖 呼叫 Featherless AI 進行標籤分類...")
     try:
         classification = classify_with_featherless(target_url, content)
@@ -283,7 +266,6 @@ def main():
         print(f"❌ Featherless API 錯誤: {e}")
         sys.exit(1)
 
-    # 輸出結果
     output = {
         "target_url": target_url,
         "content_length": len(content),

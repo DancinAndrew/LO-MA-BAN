@@ -1,0 +1,57 @@
+{
+  "overall_risk": "low",
+  "confidence": "high",
+  "risk_score": 0,
+  "checked_sources": 3,
+  "critical_flags": [],
+  "warnings": [],
+  "raw_results": [
+    {
+      "source": "virustotal",
+      "available": true,
+      "found": true,
+      "risk_level": "safe",
+      "stats": {
+        "malicious": 0,
+        "suspicious": 0,
+        "undetected": 28,
+        "harmless": 68,
+        "timeout": 0
+      },
+      "categories": {
+        "BitDefender": "porn",
+        "Xcitium Verdict Cloud": "news",
+        "Dr.Web": "adult content/violence",
+        "Sophos": "sexually explicit",
+        "Forcepoint ThreatSeeker": "violence"
+      },
+      "reputation": 0,
+      "last_analysis_date": 1740682930,
+      "details": {
+        "malicious": 0,
+        "suspicious": 0,
+        "harmless": 68,
+        "undetected": 28
+      }
+    },
+    {
+      "source": "urlhaus",
+      "available": true,
+      "found": false,
+      "message": "URL not listed in URLhaus database"
+    },
+    {
+      "source": "phishtank",
+      "available": false,
+      "error": "HTTPSConnectionPool(host='api.phishtank.com', port=443): Max retries exceeded with url: /v2/phishtank/verify (Caused by NameResolutionError(\"HTTPSConnection(host='api.phishtank.com', port=443): Failed to resolve 'api.phishtank.com' ([Errno 8] nodename nor servname provided, or not known)\"))"
+    },
+    {
+      "source": "google_safebrowsing",
+      "available": true,
+      "found": false,
+      "message": "No threats found in Google Safe Browsing database"
+    }
+  ],
+  "target_url": "http://theync.com/media.php?name=15644-beheading",
+  "timestamp": "{\"$date\": \"2026-02-28 20:45:23.374477\"}"
+}

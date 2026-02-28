@@ -1,10 +1,8 @@
-# config.py
 import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-# 載入 .env 檔案
-load_dotenv(Path(__file__).parent / ".env")
+load_dotenv(Path(__file__).parent.parent / ".env")
 
 class Config:
     # ========== API 金鑰 ==========

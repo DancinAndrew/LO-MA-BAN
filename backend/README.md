@@ -1,59 +1,94 @@
 # LO_MA_BAN Backend — 兒童網路安全網址分析
 
-針對 18 歲以下使用者設計的網址安全與內容適齡分析後端。整合**釣魚/資安偵測**與**內容適齡檢查**，並以「兒童輔導員」視角產出 JSON 報告與互動問答。
+針對 18 歲以下使用者設計的網址安全與內容適齡分析後端。整合**釣魚/資安偵測**與**內容適齡檢查**，提供兩個獨立 API：
 
----
-
-## 功能概覽
-
-| 功能 | 說明 |
-|------|------|
-| **釣魚／資安檢查** | VirusTotal、URLhaus、PhishTank、Google Safe Browsing 等威脅情報 |
-| **內容適齡檢查** | Exa 取得網頁內容 → Featherless AI 判斷是否為情色、暴力等不當內容 |
-| **分流分析** | 先做資安檢查；有風險直接標「釣魚」並分析；無風險再檢查內容是否適合兒童 |
-| **兒童友善報告** | JSON 報告含風險摘要、證據卡片、互動選擇題、安全小撇步、下一步建議 |
-| **第二階段勸阻** | 使用者明知有害仍想點擊時，可依「理由」產生勸阻與教育內容 |
+| API | 說明 |
+|-----|------|
+| **第一階段** (`first_stage`) | 輸入 URL → 資安檢查 + 內容適齡分析 → 兒童友善報告 |
+| **第二階段** (`second_stage`) | 輸入使用者理由 + 第一階段報告 → 勸阻與教育分析 |
 
 ---
 
 ## 流程架構
 
 ```
-輸入 URL
-    │
-    ▼
-┌─────────────────────────────────────┐
-│ Step 1: 安全平台 API 檢查            │
-│ (VirusTotal / URLhaus / PhishTank /  │
-│  Google Safe Browsing)               │
-└─────────────────────────────────────┘
-    │
-    ├─ 有風險 (critical / high / medium)
-    │       │
-    │       ▼
-    │   【路徑 A】標註釣魚／資安風險
-    │   → Featherless AI 深度分析（兒童輔導員模式）
-    │   → 生成 03_final_report.json
-    │
-    └─ 無明顯風險 (low)
-            │
-            ▼
-        ┌─────────────────────────────────────┐
-        │ Step 2: Exa 取得網頁內容             │
-        │ （失敗時改用 Exa 搜尋相關討論）       │
-        └─────────────────────────────────────┘
-            │
-            ├─ 偵測到不當內容（色情／暴力等）
-            │       │
-            │       ▼
-            │   【路徑 B】標註內容風險
-            │   → Featherless AI 內容適齡分析
-            │   → 生成 03_final_report.json
-            │
-            └─ 內容適合兒童
-                    │
-                    ▼
-                【低風險】生成簡要報告
+                      ┌──────────────────────┐
+                      │    第一階段 API        │
+                      │   first_stage.main    │
+                      └──────────────────────┘
+                                │
+                      輸入 URL  │
+                                ▼
+              ┌─────────────────────────────────────┐
+              │ Step 1: 安全平台 API 檢查            │
+              │ (VirusTotal / URLhaus / PhishTank /  │
+              │  Google Safe Browsing)               │
+              └─────────────────────────────────────┘
+                                │
+          ┌─────────────────────┴─────────────────────┐
+          │ 有風險                                     │ 無明顯風險
+          ▼                                            ▼
+    【路徑 A】                               ┌──────────────────┐
+    標註釣魚／資安風險                         │ Exa 取得網頁內容  │
+    → Featherless AI 分析                     │（失敗→搜尋討論）  │
+    → 預測正確網址 + 推薦替代                  └──────────────────┘
+    → 03_final_report                                  │
+                                         ┌─────────────┴──────────────┐
+                                         │ 不當內容                    │ 適合兒童
+                                         ▼                            ▼
+                                   【路徑 B】                    【低風險】
+                                   內容適齡分析                   簡要報告
+                                   → 03_final_report
+
+        ════════════════════════════════════════════
+
+                      ┌──────────────────────┐
+                      │    第二階段 API        │
+                      │  second_stage.analyzer│
+                      └──────────────────────┘
+                                │
+              使用者理由 + 第一階段報告
+                                │
+                                ▼
+              ┌─────────────────────────────────────┐
+              │ Featherless AI 分析                  │
+              │ → 行為後果警告 / 理由分析 / 建議     │
+              └─────────────────────────────────────┘
+                                │
+                                ▼
+                  second_stage_result.json + .md
+```
+
+---
+
+## 專案結構
+
+```
+backend/
+├── shared/                          # 共用模組
+│   ├── config.py                    # .env 讀取、API 金鑰、設定
+│   └── utils.py                     # save_json、load_json、step_marker
+│
+├── first_stage/                     # API 1：網址分析
+│   ├── main.py                      # 入口：資安 → 內容適齡 → 報告
+│   ├── security_api_client.py       # VirusTotal / URLhaus / PhishTank / Google SB
+│   ├── featherless_analyzer.py      # Featherless AI 分析（兒童輔導員 prompt）
+│   ├── content_risk_checker.py      # Exa 抓取 + 內容適齡分類
+│   └── report_generator.py          # JSON + Markdown 報告生成
+│
+├── second_stage/                    # API 2：勸阻分析
+│   └── analyzer.py                  # 使用者理由 → 勸阻與教育 JSON + MD
+│
+├── tools/                           # 獨立工具
+│   └── url_crawl_and_classify.py    # Exa 抓取 + Featherless 標籤分類
+│
+├── examples/                        # 範例輸出
+│   ├── first_stage/                 # phishing / violence / porn
+│   └── second_stage/                # phishing / violence / porn
+│
+├── .env.example                     # 環境變數範本
+├── requirements.txt                 # Python 依賴
+└── README.md
 ```
 
 ---
@@ -61,7 +96,7 @@
 ## 環境需求
 
 - **Python** 3.9+
-- 依賴見 `requirements.txt`
+- 依賴：`requests`、`python-dotenv`
 
 ```bash
 pip install -r requirements.txt
@@ -71,116 +106,120 @@ pip install -r requirements.txt
 
 ## 設定 (.env)
 
-複製 `.env.example` 為 `.env` 並填入金鑰：
-
 ```bash
 cp .env.example .env
 ```
 
 | 變數 | 必填 | 說明 |
 |------|------|------|
-| `FEATHERLESS_API_KEY` | ✅ | [Featherless AI](https://featherless.ai) 金鑰，用於分析與報告生成 |
-| `EXA_API_KEY` | ✅* | [Exa AI](https://exa.ai) 金鑰，用於抓取／搜尋網頁內容（內容適齡檢查需要） |
-| `GOOGLE_SAFE_BROWSING_API_KEY` | 建議 | Google Safe Browsing v4，資安檢查 |
+| `FEATHERLESS_API_KEY` | ✅ | [Featherless AI](https://featherless.ai) 金鑰 |
+| `EXA_API_KEY` | ✅* | [Exa AI](https://exa.ai) 金鑰（內容適齡檢查需要） |
+| `GOOGLE_SAFE_BROWSING_API_KEY` | 建議 | Google Safe Browsing v4 |
 | `VIRUSTOTAL_API_KEY` | 選填 | VirusTotal API v3 |
 | `PHISHTANK_API_KEY` | 選填 | PhishTank |
 | `FEATHERLESS_MODEL` | 選填 | 預設 `Qwen/Qwen2.5-7B-Instruct` |
 | `OUTPUT_DIR` | 選填 | 預設 `./output` |
-| `DEFAULT_TARGET_URL` | 選填 | 未傳 URL 時使用的預設網址 |
 
-\* 未設定 `EXA_API_KEY` 時，資安無風險的 URL 將無法做內容適齡檢查，僅保留資安結果。
+\* 未設定 `EXA_API_KEY` 時，僅保留資安檢查結果，無法做內容適齡分析。
 
 ---
 
 ## 使用方式
 
-### 主流程：分析單一網址
+所有指令從 `backend/` 目錄執行。
+
+### 第一階段：網址分析
 
 ```bash
-# 分析指定網址（輸出到預設 ./output）
-python main.py "https://example.com"
+# 分析指定網址
+python -m first_stage.main "https://example.com"
 
 # 指定輸出目錄
-python main.py "https://example.com" -o ./reports
+python -m first_stage.main "https://example.com" -o ./reports
 
 # 只做安全檢查，不呼叫 LLM
-python main.py "https://example.com" --skip-llm
+python -m first_stage.main "https://example.com" --skip-llm
 
 # 使用既有 01_security_check.json，只跑 LLM + 報告
-python main.py "https://example.com" --llm-only
+python -m first_stage.main "https://example.com" --llm-only
 
 # 僅從既有結果生成報告
-python main.py --report-only -o ./reports
+python -m first_stage.main --report-only -o ./reports
 
 # 強制跑 LLM（即使資安風險為 low）
-python main.py "https://example.com" --force-llm
+python -m first_stage.main "https://example.com" --force-llm
 ```
 
-### 第二階段：明知有害仍想點擊的勸阻
-
-需自備輸入 JSON（含 `user_input` 與 `first_stage_report`），或搭配 `--first-stage` 使用既有報告：
+### 第二階段：勸阻分析
 
 ```bash
-# 使用內建 test 輸入（需先準備含 user_input + first_stage_report 的 JSON）
-python second_stage_analyzer.py
-
 # 指定輸入檔 + 第一階段報告
-python second_stage_analyzer.py my_input.json --first-stage output/03_final_report.json
+python -m second_stage.analyzer \
+  examples/second_stage/phishing/simulate_user_input.json \
+  --first-stage examples/first_stage/phishing/03_final_report.json
+
+# 指定輸出目錄
+python -m second_stage.analyzer input.json \
+  --first-stage report.json \
+  -o ./my_output
 ```
 
-輸出寫入 `test_second_stage_output.json`，內含行為後果警告、理由分析、一般安全提醒。
+**輸入格式** (`simulate_user_input.json`)：
 
-### 獨立腳本：網址爬取 + 標籤分類
+```json
+{
+  "user_input": "使用者解釋為什麼仍想進入有害網站的理由...",
+  "first_stage_report": "__LOAD_FROM_FILE__"
+}
+```
 
-不經過主流程，僅「Exa 抓內容 → Featherless 標籤」：
+### 獨立工具：Exa 抓取 + 標籤分類
 
 ```bash
-python url_crawl_and_classify.py "https://example.com"
-# 結果：url_classification_result.json（若未改程式則寫入同目錄）
+python -m tools.url_crawl_and_classify "https://example.com"
 ```
 
 ---
 
-## 輸出檔案結構
+## 輸出檔案
 
-執行 `main.py` 後，於 `-o` 指定目錄（或 `OUTPUT_DIR`）會產生：
+### 第一階段
 
 | 檔案 | 說明 |
 |------|------|
-| `01_security_check.json` | 各安全平台檢查結果、整體風險、critical_flags 等 |
-| `02_llm_analysis.json` | 合併資安／內容分析、risk_source、final_risk_level、llm_analysis |
-| `03_final_report.json` | 前端用報告：report_metadata、kid_friendly_summary、evidence_cards、interactive_quiz、safety_tips、next_steps、raw_analysis |
+| `01_security_check.json` | 安全平台檢查結果 |
+| `02_llm_analysis.json` | 合併分析（risk_source: phishing / content / none） |
+| `03_final_report.json` | 前端用報告（含 kid_friendly_summary、quiz、tips 等） |
+| `03_final_report.md` | 人類可讀 Markdown |
 
-`risk_source` 可能為：
+### 第二階段
 
-- `phishing` — 來自資安風險（釣魚／惡意網址）
-- `content` — 來自內容適齡（不適合兒童）
-- `none` — 低風險或無法取得內容
+| 檔案 | 說明 |
+|------|------|
+| `second_stage_result.json` | 勸阻分析（行為後果、理由分析、建議、鼓勵） |
+| `second_stage_result.md` | 人類可讀 Markdown |
 
 ---
 
-## 專案結構
+## 範例輸出
 
 ```
-backend/
-├── main.py                    # 主程式：資安 → 內容適齡 → 報告
-├── config.py                  # 設定與 .env 讀取
-├── security_api_client.py     # VirusTotal / URLhaus / PhishTank / Google SB
-├── featherless_analyzer.py    # Featherless 分析（資安 + 內容風險）、兒童輔導員 prompt
-├── content_risk_checker.py    # Exa 抓取 + 內容適齡分類、is_unsuitable_for_children
-├── report_generator.py       # 03_final_report.json 生成（兒童友善文案、問答、tips）
-├── url_crawl_and_classify.py # 獨立：Exa 抓取 + Featherless 標籤分類
-├── second_stage_analyzer.py   # 第二階段：依「想點擊理由」產生勸阻 JSON
-├── scam_analyzer_prompt.py   # 舊版／備用 prompt 建構
-├── utils.py                   # save_json、load_json、step_marker 等
-├── requirements.txt
-├── .env.example
-└── README.md                  # 本說明
+examples/
+├── first_stage/
+│   ├── phishing/       # 釣魚網站（allegrolokalnie 仿冒）
+│   ├── violence/       # 暴力內容（theync.com）
+│   └── porn/           # 色情內容（pornhub）
+└── second_stage/
+    ├── phishing/       # 「賣家傳的連結、怕錯過訂單」
+    ├── violence/       # 「同學都在討論、只是好奇」
+    └── porn/           # 「很多人都看、就看一下」
 ```
 
 ---
 
-## 授權與備註
+## 備註
 
-- 報告文案與問答以「18 歲以下兒童輔導員」視角撰寫，避免過度恐嚇、用語親近。
-- 依實際需求在 `.env` 中設定各 API 金鑰；未設定的服務會略過或降級處理。
+- 所有報告以「18 歲以下兒童輔導員」視角撰寫，避免恐嚇、用語親近。
+- 第二階段採「先同理、再勸阻、附鼓勵」策略。
+- 釣魚分析會預測正確網址並推薦同類型替代網站。
+- 未設定的 API 金鑰會自動略過或降級處理。

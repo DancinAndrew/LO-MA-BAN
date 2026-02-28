@@ -1,4 +1,3 @@
-# utils.py
 import json
 from pathlib import Path
 from typing import Any, Dict
@@ -9,13 +8,13 @@ logger = logging.getLogger(__name__)
 def save_json(data: Any, filepath: Path, indent: int = 2, ensure_ascii: bool = False) -> Path:
     """
     儲存資料為 JSON 檔案
-    
+
     Args:
         data: 要儲存的資料（dict/list/任何可序列化物件）
         filepath: 輸出檔案路徑
         indent: JSON 縮排數
         ensure_ascii: 是否轉義非 ASCII 字元
-    
+
     Returns:
         實際儲存的檔案路徑
     """

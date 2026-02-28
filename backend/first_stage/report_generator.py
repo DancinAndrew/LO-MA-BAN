@@ -17,7 +17,6 @@ logger = logging.getLogger(__name__)
 class ReportGenerator:
     """生成前端可用的 JSON 格式教學報告"""
     
-    # 🎨 UI 圖示映射（前端可直接使用）
     RISK_UI = {
         "critical": {"icon": "🔴", "color": "#ef4444", "label": "超級危險"},
         "high": {"icon": "🔴", "color": "#f97316", "label": "很危險"},
@@ -32,7 +31,6 @@ class ReportGenerator:
         "low": {"icon": "❓", "label": "不太確定"}
     }
     
-    # 🧒 兒童友善風險描述（資安/釣魚）
     KID_RISK_TEXT = {
         "critical": "🚨 這個網站很可能是騙人的，千萬不要點進去！",
         "high": "⚠️ 這個網站看起來怪怪的，建議不要訪問",
@@ -41,7 +39,6 @@ class ReportGenerator:
         "inconclusive": "❓ 資訊不足，無法判斷，建議用其他工具再檢查"
     }
 
-    # 🧒 內容風險（情色/暴力等不適合兒童）
     KID_CONTENT_RISK_TEXT = {
         "critical": "🚨 這個網站有大人才能看的內容，小朋友不要進去喔！",
         "high": "⚠️ 這個網站有不適合小朋友的內容，建議不要訪問",
@@ -60,30 +57,24 @@ class ReportGenerator:
         self.target_url = target_url.strip()
         self.analysis = analysis_result
         self.cleaned_results = cleaned_results
-        self.risk_source = risk_source  # "phishing" | "content" | "none"
+        self.risk_source = risk_source
         self.timestamp = datetime.now().isoformat()
-        
-        # 提取域名特徵
         self.target_domain = self._extract_domain(target_url)
         self.target_tld = self._extract_tld(self.target_domain)
     
     def _extract_domain(self, url: str) -> str:
-        """從 URL 提取域名"""
         url = url.strip().rstrip('/')
         url = re.sub(r'^https?://', '', url)
         return url.split('/')[0].split('?')[0]
     
     def _extract_tld(self, domain: str) -> str:
-        """提取頂級域名"""
         parts = domain.split('.')
         return parts[-1] if len(parts) > 1 else ""
     
     def _simplify_text(self, text: str, max_length: int = 150) -> str:
-        """簡化文字，適合兒童閱讀"""
         if not text:
             return ""
         text = re.sub(r'\s+', ' ', text.strip())
-        # 替換專業術語為兒童友善用語
         replacements = {
             "釣魚網站": "騙人的假網站",
             "惡意軟體": "壞壞的程式",
@@ -103,7 +94,6 @@ class ReportGenerator:
         return text
     
     def generate_report(self, output_path: Path) -> Path:
-        """生成 JSON 格式報告（前端可直接使用）"""
         report = {
             "report_metadata": self._generate_metadata(),
             "kid_friendly_summary": self._generate_kid_summary(),
@@ -112,19 +102,86 @@ class ReportGenerator:
             "interactive_quiz": self._generate_interactive_quiz(),
             "safety_tips": self._generate_safety_tips(),
             "next_steps": self._generate_next_steps(),
-            "raw_analysis": self.analysis  # 保留原始分析供除錯
+            "raw_analysis": self.analysis
         }
         
-        # 寫入 JSON 檔案
         output_path.parent.mkdir(parents=True, exist_ok=True)
         with open(output_path, 'w', encoding='utf-8') as f:
             json.dump(report, f, ensure_ascii=False, indent=2)
-        
         logger.info(f"📦 JSON 報告已儲存：{output_path}")
+
+        md_path = output_path.with_suffix('.md')
+        self._write_markdown_report(report, md_path)
+        logger.info(f"📄 Markdown 報告已儲存：{md_path}")
         return output_path
+
+    def _write_markdown_report(self, report: Dict, md_path: Path) -> None:
+        meta = report.get("report_metadata", {})
+        kid = report.get("kid_friendly_summary", {})
+        risk = meta.get("risk", {})
+        conf = meta.get("confidence", {})
+
+        raw = report.get("raw_analysis", {})
+        intended_urls = raw.get("likely_intended_urls") or []
+        if not intended_urls and raw.get("likely_intended_url"):
+            intended_urls = [raw["likely_intended_url"]]
+        intended_reason = raw.get("intended_url_reason", "")
+        alternatives = raw.get("alternative_recommendations") or []
+
+        lines = [
+            "# 網址安全分析報告",
+            "",
+            f"**目標網址**：{meta.get('target_url', '')}",
+            f"**分析時間**：{meta.get('timestamp', '')}",
+            "",
+        ]
+        if intended_urls:
+            lines.append("**你可能想去的正確網址**：")
+            for u in intended_urls:
+                lines.append(f"- {u}")
+            if intended_reason:
+                lines.extend(["", f"*{intended_reason}*", ""])
+            else:
+                lines.append("")
+        if alternatives:
+            lines.append("**可替代的合法網站推薦**：")
+            for a in alternatives:
+                name = a.get("name", "")
+                url = a.get("url", "")
+                lines.append(f"- **{name}**：{url}")
+            lines.append("")
+        lines.extend([
+            "---", "",
+            f"## {kid.get('title', '')}", "",
+            kid.get("simple_message", ""), "",
+            f"**簡要說明**：{kid.get('short_explanation', '')}", "",
+            "### 風險資訊",
+            f"- 風險等級：{risk.get('label', '')}（分數 {risk.get('score', 'N/A')}/100）",
+            f"- 信心程度：{conf.get('label', '')}", "",
+            "---", "", "## 證據摘要", "",
+        ])
+        for card in report.get("evidence_cards", []):
+            lines.append(f"- **{card.get('icon', '')} {card.get('title', '')}**：{card.get('content', '')}")
+        lines.extend(["", "---", "", "## 安全小撇步", ""])
+        for tip in report.get("safety_tips", []):
+            lines.append(f"- **{tip.get('icon', '')} {tip.get('tip', '')}** — {tip.get('why', '')}")
+        lines.extend(["", "---", "", "## 下一步建議", ""])
+        for step in report.get("next_steps", []):
+            lines.append(f"- {step.get('icon', '')} {step.get('action', '')}")
+        lines.extend(["", "---", "", "## 互動問答", ""])
+        quiz = report.get("interactive_quiz", {})
+        if quiz.get("enabled") and quiz.get("question"):
+            lines.extend([f"**題目**：{quiz.get('question', '')}", ""])
+            for opt in quiz.get("options", []):
+                lines.append(f"- **{opt.get('id', '')}** {opt.get('text', '')} {opt.get('feedback_icon', '')}")
+            if quiz.get("learning_point"):
+                lines.extend(["", f"**學習重點**：{quiz.get('learning_point', '')}", ""])
+        lines.append("")
+        md_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(md_path, 'w', encoding='utf-8') as f:
+            f.write("\n".join(lines))
     
     def _generate_metadata(self) -> Dict:
-        """生成報告基本資訊"""
         risk_level = self.analysis.get('risk_level', 'inconclusive')
         risk_ui = self.RISK_UI.get(risk_level, self.RISK_UI['inconclusive'])
         confidence = self.analysis.get('confidence', 'low')
@@ -150,7 +207,6 @@ class ReportGenerator:
         }
     
     def _generate_kid_summary(self) -> Dict:
-        """生成兒童友善的風險摘要"""
         risk_level = self.analysis.get('risk_level', 'inconclusive')
         risk_ui = self.RISK_UI.get(risk_level, self.RISK_UI['inconclusive'])
         risk_texts = self.KID_CONTENT_RISK_TEXT if self.risk_source == "content" else self.KID_RISK_TEXT
@@ -168,7 +224,6 @@ class ReportGenerator:
         }
     
     def _generate_default_kid_explanation(self) -> str:
-        """預設兒童版解釋（當 LLM 沒提供時）"""
         risk_level = self.analysis.get('risk_level', 'inconclusive')
         content_type = self.analysis.get('content_risk_type', '')
 
@@ -186,29 +241,19 @@ class ReportGenerator:
         return "這個網址看起來沒有明顯危險，但上網時還是要保持警覺，不要隨便輸入個人資料喔！"
     
     def _generate_evidence_cards(self) -> List[Dict]:
-        """生成證據卡片（前端可輪播顯示）"""
         evidence = self.analysis.get('evidence_summary') or self.analysis.get('evidence_analysis', [])
         cards = []
-        
-        # 證據圖示映射
-        evidence_icons = {
-            "域名": "🔤", "尾巴": "🌐", "品牌": "🏷️", 
-            "可疑": "⚠️", "威脅": "🚨", "統計": "📊"
-        }
         
         for i, ev in enumerate(evidence[:4]):
             clean_ev = re.sub(r'^[-•\d.\s]+', '', str(ev)).strip()
             if not clean_ev:
                 continue
-            
-            # 自動判斷嚴重程度和圖示
             severity = "medium"
             icon = "🔍"
             if any(kw in clean_ev.lower() for kw in ["critical", "惡意", "threat", "danger"]):
                 severity = "high"
                 icon = "🚨"
             elif any(kw in clean_ev.lower() for kw in ["suspicious", "可疑", "warning"]):
-                severity = "medium"
                 icon = "⚠️"
             elif any(kw in clean_ev.lower() for kw in ["tld", "尾巴", "cfd", "xyz"]):
                 icon = "🌐"
@@ -237,7 +282,6 @@ class ReportGenerator:
         return cards
     
     def _extract_evidence_title(self, evidence_text: str) -> str:
-        """從證據文字提取簡短標題"""
         patterns = [
             (r"威脅類型[:：]\s*(.+?)(?:[，。]|$)", "🚨 偵測到威脅"),
             (r"分類[:：]\s*(.+?)(?:[，。]|$)", "🏷️ 分類標籤"),
@@ -246,19 +290,15 @@ class ReportGenerator:
             (r"品牌", "🏷️ 品牌相似度"),
             (r"域名.*?複雜", "🔤 域名結構"),
         ]
-        
         for pattern, title in patterns:
             match = re.search(pattern, evidence_text, re.I)
             if match:
                 return title if isinstance(title, str) else title(match)
-        
         return evidence_text[:10] + "..." if len(evidence_text) > 10 else evidence_text
     
     def _generate_pattern_analysis(self) -> Dict:
-        """生成域名模式分析（簡化版供前端顯示）"""
         high_risk_tlds = ['cfd', 'top', 'rest', 'xyz', 'loan', 'click', 'work']
         is_high_risk_tld = self.target_tld.lower() in high_risk_tlds
-        
         domain_len = len(self.target_domain)
         has_numbers = any(c.isdigit() for c in self.target_domain)
         has_hyphens = '-' in self.target_domain
@@ -286,23 +326,16 @@ class ReportGenerator:
         }
         
     def _generate_interactive_quiz(self) -> Dict:
-        """生成互動式選擇題（LLM 創意生成 + fallback）"""
-        # 嘗試從 LLM 結果提取題目
         quiz_data = self.analysis.get('quiz') or self.analysis.get('interactive_quiz')
-        
-        # ✅ 防禦性檢查：確保 quiz_data 是 dict 且有 question
         if quiz_data and isinstance(quiz_data, dict) and quiz_data.get('question'):
             try:
                 return self._render_llm_quiz(quiz_data)
             except Exception as e:
                 logger.warning(f"⚠️ LLM 題目渲染失敗: {e}，使用 fallback 題目")
                 return self._generate_fallback_quiz()
-        
-        # Fallback：根據域名特徵生成基礎題目
         return self._generate_fallback_quiz()
     
     def _render_llm_quiz(self, quiz_data: Dict) -> Dict:
-        """渲染 LLM 生成的創意題目（含類型安全檢查）"""
         options = quiz_data.get('options', [])
         explanations = quiz_data.get('explanations', {})
         correct_answer = quiz_data.get('correct_answer', '')
@@ -311,7 +344,6 @@ class ReportGenerator:
         option_ids = ['A', 'B', 'C', 'D']
         
         for i, opt in enumerate(options[:4]):
-            # ✅ 處理 options 可能是 dict 或 string 的情況
             if isinstance(opt, dict):
                 opt_id = opt.get('id', option_ids[i] if i < len(option_ids) else str(i+1))
                 opt_text = opt.get('text', str(opt))
@@ -319,18 +351,14 @@ class ReportGenerator:
                 opt_id = option_ids[i] if i < len(option_ids) else str(i+1)
                 opt_text = str(opt)
             
-            # ✅ 判斷是否為正確答案（支援 ID 或文字比對）
             is_correct = (str(opt_text) == str(correct_answer)) or (str(opt_id) == str(correct_answer))
             
-            # ✅ 安全提取解釋（避免 unhashable type 錯誤）
             explanation = "再想想看～"
             if isinstance(explanations, dict):
-                # 只使用 string 類型的 key 來查詢
                 if isinstance(opt_id, str) and opt_id in explanations:
                     explanation = explanations[opt_id]
                 elif isinstance(opt_text, str) and opt_text in explanations:
                     explanation = explanations[opt_text]
-                # 嘗試轉換 key 為 string 再查詢
                 elif str(opt_id) in explanations:
                     explanation = explanations[str(opt_id)]
             
@@ -342,14 +370,11 @@ class ReportGenerator:
                 "feedback_icon": "✅" if is_correct else "❌"
             })
         
-        # ✅ 安全提取正確答案 ID
         correct_answer_id = None
         if correct_answer:
-            # 如果 correct_answer 是選項 ID（A/B/C/D）
             if str(correct_answer) in option_ids:
                 correct_answer_id = str(correct_answer)
             else:
-                # 嘗試從 formatted_options 中找到匹配的文字
                 for opt in formatted_options:
                     if opt['text'] == str(correct_answer):
                         correct_answer_id = opt['id']
@@ -367,7 +392,6 @@ class ReportGenerator:
         }
 
     def _generate_fallback_quiz(self) -> Dict:
-        """Fallback 題目生成器（當 LLM 沒提供時）"""
         if self.risk_source == "content":
             return self._generate_content_risk_quiz()
         if any(brand in self.target_domain.lower() for brand in ['paypa', 'amazn', 'app1e', 'g0ogle', 'allegro']):
@@ -378,7 +402,6 @@ class ReportGenerator:
             return self._generate_generic_safety_quiz()
 
     def _generate_content_risk_quiz(self) -> Dict:
-        """內容風險（不適合兒童）風格題目"""
         return {
             "enabled": True,
             "question": "🤔 如果你不小心點進了一個「不適合小朋友看」的網站，第一步應該做什麼？",
@@ -396,41 +419,16 @@ class ReportGenerator:
         }
     
     def _generate_brand_impersonation_quiz(self) -> Dict:
-        """品牌仿冒風格題目"""
         return {
             "enabled": True,
             "question": f"🔍 你覺得 `{self.target_domain}` 這個網址，哪裡「怪怪的」？",
             "hint": "仔細看每個字母喔，騙子喜歡用數字代替字母！",
             "type": "single_choice",
             "options": [
-                {
-                    "id": "A",
-                    "text": "它跟真正的品牌網址長得好像，但有些地方不太一樣",
-                    "is_correct": False,
-                    "explanation": "只注意到「像」還不夠，要學會「逐字檢查每個字母」喔！",
-                    "feedback_icon": "❌"
-                },
-                {
-                    "id": "B",
-                    "text": f"它的「尾巴」是 .{self.target_tld}，但正規網站通常是 .com",
-                    "is_correct": False,
-                    "explanation": f".{self.target_tld} 確實可疑，但騙子也會用 .com，不能只看尾巴",
-                    "feedback_icon": "❌"
-                },
-                {
-                    "id": "C",
-                    "text": "它用數字或符號代替字母（例如用 1 代替 l，0 代替 o）",
-                    "is_correct": True,
-                    "explanation": "答對啦！騙人的網站常用數字代替字母來混淆你，要逐字檢查！",
-                    "feedback_icon": "✅"
-                },
-                {
-                    "id": "D",
-                    "text": "以上都是！🎉",
-                    "is_correct": False,
-                    "explanation": "D 看起來很誘人，但這題要選「最關鍵」的那個喔！",
-                    "feedback_icon": "❌"
-                }
+                {"id": "A", "text": "它跟真正的品牌網址長得好像，但有些地方不太一樣", "is_correct": False, "explanation": "只注意到「像」還不夠，要學會「逐字檢查每個字母」喔！", "feedback_icon": "❌"},
+                {"id": "B", "text": f"它的「尾巴」是 .{self.target_tld}，但正規網站通常是 .com", "is_correct": False, "explanation": f".{self.target_tld} 確實可疑，但騙子也會用 .com，不能只看尾巴", "feedback_icon": "❌"},
+                {"id": "C", "text": "它用數字或符號代替字母（例如用 1 代替 l，0 代替 o）", "is_correct": True, "explanation": "答對啦！騙人的網站常用數字代替字母來混淆你，要逐字檢查！", "feedback_icon": "✅"},
+                {"id": "D", "text": "以上都是！🎉", "is_correct": False, "explanation": "D 看起來很誘人，但這題要選「最關鍵」的那個喔！", "feedback_icon": "❌"}
             ],
             "correct_answer_id": "C",
             "learning_point": "看到很像知名品牌的網址，一定要「逐字檢查」＋「確認官方網址」！",
@@ -438,41 +436,16 @@ class ReportGenerator:
         }
     
     def _generate_tld_quiz(self) -> Dict:
-        """頂級域名風格題目"""
         return {
             "enabled": True,
             "question": f"🌐 網址的「尾巴」`.{self.target_tld}`，代表什麼意思呢？",
             "hint": "想想看，你常看到的網站尾巴是什麼？",
             "type": "single_choice",
             "options": [
-                {
-                    "id": "A",
-                    "text": "這是一個很常見、很安全的尾巴，可以放心點",
-                    "is_correct": False,
-                    "explanation": f".{self.target_tld} 雖然合法，但因為註冊便宜，常被騙子利用，要小心！",
-                    "feedback_icon": "❌"
-                },
-                {
-                    "id": "B",
-                    "text": f"這是一個比較少見的尾巴，要特別小心",
-                    "is_correct": True,
-                    "explanation": f"答對啦！.com、.tw 是常見的尾巴，但像 .{self.target_tld} 這種比較少見的，要特別小心！",
-                    "feedback_icon": "✅"
-                },
-                {
-                    "id": "C",
-                    "text": "尾巴不重要，只要網站有🔒小鎖頭就安全",
-                    "is_correct": False,
-                    "explanation": "🔒小鎖頭只代表「連線有加密」，不代表「網站內容是真的」，騙人的網站也可以有鎖頭",
-                    "feedback_icon": "❌"
-                },
-                {
-                    "id": "D",
-                    "text": "所有尾巴都一樣，不用在意",
-                    "is_correct": False,
-                    "explanation": "不同的尾巴代表不同的註冊規則，學會分辨很重要喔！",
-                    "feedback_icon": "❌"
-                }
+                {"id": "A", "text": "這是一個很常見、很安全的尾巴，可以放心點", "is_correct": False, "explanation": f".{self.target_tld} 雖然合法，但因為註冊便宜，常被騙子利用，要小心！", "feedback_icon": "❌"},
+                {"id": "B", "text": f"這是一個比較少見的尾巴，要特別小心", "is_correct": True, "explanation": f"答對啦！.com、.tw 是常見的尾巴，但像 .{self.target_tld} 這種比較少見的，要特別小心！", "feedback_icon": "✅"},
+                {"id": "C", "text": "尾巴不重要，只要網站有🔒小鎖頭就安全", "is_correct": False, "explanation": "🔒小鎖頭只代表「連線有加密」，不代表「網站內容是真的」，騙人的網站也可以有鎖頭", "feedback_icon": "❌"},
+                {"id": "D", "text": "所有尾巴都一樣，不用在意", "is_correct": False, "explanation": "不同的尾巴代表不同的註冊規則，學會分辨很重要喔！", "feedback_icon": "❌"}
             ],
             "correct_answer_id": "B",
             "learning_point": f"不確定時，可以搜尋「.{self.target_tld} 域名 安全嗎」，或直接輸入「品牌名 + .com」訪問官方網站！",
@@ -480,41 +453,16 @@ class ReportGenerator:
         }
     
     def _generate_generic_safety_quiz(self) -> Dict:
-        """通用安全意識題目"""
         return {
             "enabled": True,
             "question": "🤔 如果你收到一個陌生連結，第一步應該做什麼？",
             "hint": "記住口訣：停、看、聽！",
             "type": "single_choice",
             "options": [
-                {
-                    "id": "A",
-                    "text": "馬上點進去看看是什麼",
-                    "is_correct": False,
-                    "explanation": "直接點進去可能會中病毒、被騙個資，千萬不要！",
-                    "feedback_icon": "❌"
-                },
-                {
-                    "id": "B",
-                    "text": "先複製網址，用安全工具檢查一下",
-                    "is_correct": True,
-                    "explanation": "答對啦！先用安全工具檢查，是最保險的做法！",
-                    "feedback_icon": "✅"
-                },
-                {
-                    "id": "C",
-                    "text": "直接刪除，不管它",
-                    "is_correct": False,
-                    "explanation": "刪除是安全的，但如果這是重要通知，可能會錯過重要資訊",
-                    "feedback_icon": "❌"
-                },
-                {
-                    "id": "D",
-                    "text": "轉發給朋友一起看",
-                    "is_correct": False,
-                    "explanation": "轉發可能讓更多人遇到危險，要先確認安全再分享",
-                    "feedback_icon": "❌"
-                }
+                {"id": "A", "text": "馬上點進去看看是什麼", "is_correct": False, "explanation": "直接點進去可能會中病毒、被騙個資，千萬不要！", "feedback_icon": "❌"},
+                {"id": "B", "text": "先複製網址，用安全工具檢查一下", "is_correct": True, "explanation": "答對啦！先用安全工具檢查，是最保險的做法！", "feedback_icon": "✅"},
+                {"id": "C", "text": "直接刪除，不管它", "is_correct": False, "explanation": "刪除是安全的，但如果這是重要通知，可能會錯過重要資訊", "feedback_icon": "❌"},
+                {"id": "D", "text": "轉發給朋友一起看", "is_correct": False, "explanation": "轉發可能讓更多人遇到危險，要先確認安全再分享", "feedback_icon": "❌"}
             ],
             "correct_answer_id": "B",
             "learning_point": "安全口訣：「陌生連結不亂點，先查再按最安全」🔐",
@@ -522,9 +470,7 @@ class ReportGenerator:
         }
     
     def _generate_safety_tips(self) -> List[Dict]:
-        """生成安全小撇步（前端可卡片輪播）"""
         recommendations = self.analysis.get('recommendations', [])
-
         if self.risk_source == "content":
             kid_tips_templates = [
                 {"icon": "🚫", "tip": "不點開奇怪的連結", "why": "可能連到不適合小朋友的網站"},
@@ -567,9 +513,7 @@ class ReportGenerator:
         return tips
     
     def _generate_next_steps(self) -> List[Dict]:
-        """生成下一步行動建議"""
         risk_level = self.analysis.get('risk_level', 'inconclusive')
-        
         if risk_level in ['critical', 'high']:
             return [
                 {"action": "❌ 不要點擊此連結", "priority": "high", "icon": "🚫"},
@@ -585,17 +529,14 @@ class ReportGenerator:
             ]
 
 
-# ========== 相容性函數（供舊版 main.py 呼叫）==========
 def generate_report_from_json(
     target_url: str,
     analysis_json_path: Path,
     cleaned_results_path: Path,
     output_path: Path
 ) -> Path:
-    """從 JSON 檔案生成報告（相容舊版介面）"""
     with open(analysis_json_path, 'r', encoding='utf-8') as f:
         raw_data = json.load(f)
-    
     if 'choices' in raw_data:
         content = raw_data['choices'][0]['message']['content']
         analysis_result = json.loads(content)
@@ -603,10 +544,8 @@ def generate_report_from_json(
         analysis_result = raw_data['llm_analysis'] or raw_data
     else:
         analysis_result = raw_data
-    
     with open(cleaned_results_path, 'r', encoding='utf-8') as f:
         cleaned_data = json.load(f)
     cleaned_results = cleaned_data.get('results', cleaned_data.get('cleaned_results', []))
-    
     generator = ReportGenerator(target_url, analysis_result, cleaned_results)
     return generator.generate_report(output_path)

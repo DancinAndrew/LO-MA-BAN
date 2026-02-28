@@ -12,15 +12,14 @@ from pathlib import Path
 from datetime import datetime
 from dotenv import load_dotenv
 
-# ✅ 確保 .env 被載入
-load_dotenv()
+load_dotenv(Path(__file__).parent.parent / ".env")
 
-from config import Config
-from security_api_client import SecurityAPIClient
-from featherless_analyzer import FeatherlessAnalyzer
-from report_generator import ReportGenerator
-from content_risk_checker import fetch_content_for_url, classify_content_safety, is_unsuitable_for_children
-from utils import save_json, step_marker, load_json
+from shared.config import Config
+from .security_api_client import SecurityAPIClient
+from .featherless_analyzer import FeatherlessAnalyzer
+from .report_generator import ReportGenerator
+from .content_risk_checker import fetch_content_for_url, classify_content_safety, is_unsuitable_for_children
+from shared.utils import save_json, step_marker, load_json
 
 logging.basicConfig(
     level=logging.INFO,
@@ -46,7 +45,6 @@ def main():
                        help='強制呼叫 LLM（即使風險等級低）')
     args = parser.parse_args()
     
-    # ========== 目標網址 ==========
     target_url = args.url or Config.DEFAULT_TARGET_URL
     if not target_url:
         logger.error("❌ 請提供目標網址或設定 DEFAULT_TARGET_URL")
@@ -54,7 +52,6 @@ def main():
     
     target_url = target_url.strip()
     
-    # ========== 輸出目錄 ==========
     output_dir = Path(args.output_dir) if args.output_dir else Config.setup_output_dir()
     Config.OUTPUT_DIR = output_dir
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -80,7 +77,6 @@ def main():
             save_json(security_results, security_output)
             logger.info(step_marker(1, "安全檢查完成", "done"))
         
-        # 如果只需要安全檢查結果，到此結束
         if args.skip_llm and not args.force_llm:
             print("\n" + "=" * 60)
             print("✅ 安全檢查結果摘要")
@@ -105,7 +101,6 @@ def main():
         overall_risk = security_results.get('overall_risk', 'inconclusive')
         analyzer = FeatherlessAnalyzer()
 
-        # 路徑 A：釣魚/資安風險 → 直接進入 Featherless（兒童輔導員模式）
         if overall_risk in ['critical', 'high', 'medium'] or args.force_llm:
             logger.info(step_marker(2, f"偵測到釣魚/資安風險 ({overall_risk})，開始 LLM 深度分析"))
             llm_analysis = analyzer.analyze(target_url, security_results)
@@ -120,7 +115,6 @@ def main():
             save_json(final_result, llm_output)
             logger.info(step_marker(2, "LLM 分析完成", "done"))
 
-        # 路徑 B：資安無明顯風險 → Exa 取得內容 → 檢查是否為情色/暴力等不當內容
         else:
             logger.info(step_marker(2, "資安檢查無明顯風險，進行內容適齡檢查（Exa + Featherless）"))
             content, content_err = fetch_content_for_url(target_url)

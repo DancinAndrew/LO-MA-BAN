@@ -6,9 +6,8 @@
 import json
 import requests
 from typing import Dict, Tuple, Optional
-from config import Config
+from shared.config import Config
 
-# 不適合兒童的標籤關鍵字
 UNSUITABLE_LABELS = frozenset([
     "色情", "成人", "暴力", "血腥", "gore", "porn", "nsfw", "explicit",
     "裸露", "不雅", "極端暴力", "恐怖"
@@ -21,9 +20,9 @@ def fetch_content_for_url(target_url: str) -> Tuple[Optional[str], Optional[str]
     回傳 (內容, 錯誤訊息)
     """
     try:
-        from url_crawl_and_classify import fetch_url_content_exa, search_url_context_exa
+        from tools.url_crawl_and_classify import fetch_url_content_exa, search_url_context_exa
     except ImportError:
-        return None, "無法載入 url_crawl_and_classify 模組"
+        return None, "無法載入 tools.url_crawl_and_classify 模組"
 
     content, err = fetch_url_content_exa(target_url)
     if err and ("CRAWL_LIVECRAWL_TIMEOUT" in str(err) or "CRAWL_NOT_FOUND" in str(err)):
@@ -46,7 +45,6 @@ def is_unsuitable_for_children(classification: Dict) -> bool:
 def classify_content_safety(target_url: str, page_content: str) -> Dict:
     """
     將網頁內容送至 Featherless AI 判斷是否適合 18 歲以下兒童
-    回傳與 url_crawl_and_classify 相同格式，額外加 is_unsuitable_for_children
     """
     api_url = Config.FEATHERLESS_API_URL
     api_key = Config.FEATHERLESS_API_KEY
