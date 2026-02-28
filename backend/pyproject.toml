@@ -1,0 +1,12 @@
+[project]
+name = "scoutnet-backend"
+version = "2.0.0"
+description = "ScoutNet backend API — security check + AI analysis proxy"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.34.0",
+    "httpx>=0.28.0",
+    "python-dotenv>=1.1.0",
+    "openai>=1.0.0",
+]
