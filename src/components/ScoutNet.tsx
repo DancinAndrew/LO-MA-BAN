@@ -88,7 +88,8 @@ const ScoutNet: React.FC<ScoutNetProps> = ({ siteData: siteDataProp, onLeaveSite
   };
 
   // Fox message bubbles only (no reply UI) — left side: our website guardian
-  const renderFoxBubbles = (step: Step) => (
+  // isCurrentStep: when true, show typing for enter if loading; when false (from history), always show the question
+  const renderFoxBubbles = (step: Step, isCurrentStep?: boolean) => (
     <div className="chat-message chat-message--fox">
       <div className="chat-fox-side">
         <div className="chat-avatar" aria-hidden>🦊</div>
@@ -239,24 +240,25 @@ const ScoutNet: React.FC<ScoutNetProps> = ({ siteData: siteDataProp, onLeaveSite
           </div>
         )}
         {step === 'enter' && (
-          <div className="chat-bubble">
-            <p className="chat-bubble-text">Why do you want to still go to the website? Please fill in your reason (required), then click Submit. We’ll call the persuade API and show ScoutNet’s suggestions.</p>
-          </div>
+          isCurrentStep && persuadeLoading ? (
+            <div className="chat-bubble" style={{ padding: '10px 14px' }}>
+              <span className="scoutnet-typing-indicator">
+                ScoutNet 正在輸入中 typing
+                <span className="dot" />
+                <span className="dot" />
+                <span className="dot" />
+              </span>
+            </div>
+          ) : (
+            <div className="chat-bubble">
+              <p className="chat-bubble-text">Why do you want to still go to the website? Please fill in your reason (required), then click Submit. We’ll call the persuade API and show ScoutNet’s suggestions.</p>
+            </div>
+          )
         )}
         {step === 'persuade_result' && (
           <div className="chat-bubble chat-bubble--card">
-            {persuadeLoading && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span className="scoutnet-typing-indicator">
-                  ScoutNet 正在輸入中 typing
-                  <span className="dot" />
-                  <span className="dot" />
-                  <span className="dot" />
-                </span>
-              </div>
-            )}
-            {persuadeError && !persuadeLoading && <p className="chat-bubble-text" style={{ color: '#991b1b' }}>無法取得建議，您仍可確認前往或返回。</p>}
-            {persuadeResult && !persuadeLoading && (
+            {persuadeError && <p className="chat-bubble-text" style={{ color: '#991b1b' }}>無法取得建議，您仍可確認前往或返回。</p>}
+            {persuadeResult && (
               <>
                 <p className="chat-bubble-label">您的原因</p>
                 <p className="chat-bubble-text" style={{ marginBottom: 8 }}>{enterReason.trim()}</p>
@@ -404,25 +406,9 @@ const ScoutNet: React.FC<ScoutNetProps> = ({ siteData: siteDataProp, onLeaveSite
     }
 
     if (currentStep === 'enter') {
+      if (persuadeLoading) return null;
       return (
         <>
-          {persuadeLoading && (
-            <div className="chat-message chat-message--fox" style={{ marginBottom: 12 }}>
-              <div className="chat-fox-side">
-                <div className="chat-avatar" aria-hidden>🦊</div>
-              </div>
-              <div className="chat-bubbles">
-                <div className="chat-bubble" style={{ padding: '10px 14px' }}>
-                  <span className="scoutnet-typing-indicator">
-                    ScoutNet 正在輸入中 typing
-                    <span className="dot" />
-                    <span className="dot" />
-                    <span className="dot" />
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
           <div className="chat-reply-input-wrap">
             <textarea
               className="chat-reply-textarea"
@@ -430,7 +416,6 @@ const ScoutNet: React.FC<ScoutNetProps> = ({ siteData: siteDataProp, onLeaveSite
               value={enterReason}
               onChange={(e) => setEnterReason(e.target.value)}
               rows={3}
-              disabled={persuadeLoading}
             />
           </div>
           <div className="chat-replies">
@@ -438,8 +423,8 @@ const ScoutNet: React.FC<ScoutNetProps> = ({ siteData: siteDataProp, onLeaveSite
               type="button"
               className="chat-reply chat-reply--primary"
               onClick={onSubmitReason}
-              disabled={!enterReason.trim() || persuadeLoading}
-              style={{ opacity: enterReason.trim() && !persuadeLoading ? 1 : 0.6 }}
+              disabled={!enterReason.trim()}
+              style={{ opacity: enterReason.trim() ? 1 : 0.6 }}
             >
               Submit
             </button>
@@ -447,7 +432,6 @@ const ScoutNet: React.FC<ScoutNetProps> = ({ siteData: siteDataProp, onLeaveSite
               type="button"
               className="chat-reply chat-reply--secondary"
               onClick={() => setCurrentStep('confirm')}
-              disabled={persuadeLoading}
             >
               Back
             </button>
@@ -503,11 +487,11 @@ const ScoutNet: React.FC<ScoutNetProps> = ({ siteData: siteDataProp, onLeaveSite
             <div className="chat-thread-inner">
               {conversation.map((entry, i) => (
                 <React.Fragment key={i}>
-                  {renderFoxBubbles(entry.step)}
+                  {renderFoxBubbles(entry.step, false)}
                   {renderUserBubble(entry.userReply)}
                 </React.Fragment>
               ))}
-              {renderFoxBubbles(currentStep)}
+              {renderFoxBubbles(currentStep, true)}
               {renderReplyInput()}
             </div>
           </div>
