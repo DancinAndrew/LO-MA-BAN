@@ -6,8 +6,8 @@
 
 | Method | Path | 說明 |
 |--------|------|------|
-| `POST` | `/api/v1/analyze` | 第一階段：資安 + 內容適齡分析 → 兒童友善報告 |
-| `POST` | `/api/v1/second-stage/analyze` | 第二階段：使用者理由勸阻 + 教育 |
+| `POST` | `/api/v1/scan` | 第一階段：資安 + 內容適齡分析 → 兒童友善報告 |
+| `POST` | `/api/v1/scan/persuade` | 第二階段：使用者理由勸阻 + 教育 |
 | `GET`  | `/health` | 伺服器健康檢查 |
 
 ---
@@ -23,7 +23,7 @@ cp .env.example .env   # 填入 API 金鑰
 uv run python main.py
 
 # 或使用 pip
-pip install fastapi uvicorn httpx openai python-dotenv
+pip install fastapi uvicorn httpx openai python-dotenv pydantic-settings
 python main.py
 ```
 
@@ -42,17 +42,17 @@ Extension 端**不持有任何 API Key**，所有安全檢查和 AI 分析都由
 ```
 Chrome Extension (popup / content script / background)
   → fetch() / chrome.runtime.sendMessage()
-    → POST http://localhost:8000/api/v1/analyze
+    → POST http://localhost:8000/api/v1/scan
     ← JSON response（含 report 給 UI 渲染）
 ```
 
-### 第一階段：分析網址
+### 第一階段：掃描網址
 
 ```typescript
 const BASE_URL = "http://localhost:8000";
 
-async function analyzeUrl(url: string) {
-  const resp = await fetch(`${BASE_URL}/api/v1/analyze`, {
+async function scanUrl(url: string) {
+  const resp = await fetch(`${BASE_URL}/api/v1/scan`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ url }),
@@ -63,7 +63,7 @@ async function analyzeUrl(url: string) {
 }
 
 // 使用範例
-const result = await analyzeUrl("https://example.com");
+const result = await scanUrl("https://example.com");
 
 // 關鍵欄位
 result.risk_source;       // "phishing" | "content" | "none"
@@ -76,8 +76,8 @@ result.report;            // 兒童友善報告（給 UI 渲染）
 當使用者在第一階段看到警告後仍輸入理由想繼續時，呼叫第二階段：
 
 ```typescript
-async function secondStageAnalyze(userInput: string, firstStageReport: object) {
-  const resp = await fetch(`${BASE_URL}/api/v1/second-stage/analyze`, {
+async function persuadeUser(userInput: string, firstStageReport: object) {
+  const resp = await fetch(`${BASE_URL}/api/v1/scan/persuade`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -91,7 +91,7 @@ async function secondStageAnalyze(userInput: string, firstStageReport: object) {
 }
 
 // 使用範例：將第一階段的 report 原封不動傳回
-const stage2 = await secondStageAnalyze(
+const stage2 = await persuadeUser(
   "我只是好奇想看看...",
   result.report   // 第一階段拿到的 report 物件
 );
@@ -109,8 +109,8 @@ stage2.second_stage_result.encouraging_message;            // 鼓勵訊息
 const API_BASE = "http://localhost:8000";
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  if (message.type === "ANALYZE_URL") {
-    fetch(`${API_BASE}/api/v1/analyze`, {
+  if (message.type === "SCAN_URL") {
+    fetch(`${API_BASE}/api/v1/scan`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ url: message.url }),
@@ -121,8 +121,8 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     return true; // keep message channel open for async response
   }
 
-  if (message.type === "SECOND_STAGE") {
-    fetch(`${API_BASE}/api/v1/second-stage/analyze`, {
+  if (message.type === "PERSUADE") {
+    fetch(`${API_BASE}/api/v1/scan/persuade`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -139,7 +139,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
 // popup 或 content script 呼叫方式
 const resp = await chrome.runtime.sendMessage({
-  type: "ANALYZE_URL",
+  type: "SCAN_URL",
   url: "https://example.com",
 });
 if (resp.success) {
@@ -172,9 +172,11 @@ if (resp.success) {
 
 ### 錯誤處理
 
+所有錯誤回應都包含 `request_id` 方便追蹤：
+
 ```typescript
 try {
-  const result = await analyzeUrl(url);
+  const result = await scanUrl(url);
   // 正常處理 ...
 } catch (err) {
   // HTTP 422 — URL 格式錯誤（缺少 scheme 等）
@@ -183,18 +185,20 @@ try {
 }
 ```
 
-422 回應範例（FastAPI 自動驗證）：
+422 回應範例：
 
 ```json
 {
-  "detail": [
+  "detail": "請求參數驗證失敗",
+  "errors": [
     {
       "type": "value_error",
       "loc": ["body", "url"],
       "msg": "Input should be a valid URL",
       "input": "not-a-url"
     }
-  ]
+  ],
+  "request_id": "a1b2c3d4e5f6"
 }
 ```
 
@@ -202,8 +206,8 @@ try {
 
 | 端點 | 建議 timeout | 說明 |
 |------|-------------|------|
-| `/api/v1/analyze` | **120–180 秒** | 含 4 個 Security API 並行查詢 + LLM 分析 |
-| `/api/v1/second-stage/analyze` | **60–90 秒** | 僅 LLM 分析 |
+| `/api/v1/scan` | **120–180 秒** | 含 4 個 Security API 並行查詢 + LLM 分析 |
+| `/api/v1/scan/persuade` | **60–90 秒** | 僅 LLM 分析 |
 | `/health` | **5 秒** | 簡單 health check |
 
 ---
@@ -218,21 +222,21 @@ try {
 
 ---
 
-### `POST /api/v1/analyze`
+### `POST /api/v1/scan`
 
 #### Request
 
 | 欄位 | 型別 | 必填 | 說明 |
 |------|------|:----:|------|
 | `url` | string (URL) | **是** | 目標網址，須含 scheme（`https://`） |
-| `skip_llm` | boolean | 否 | 僅跑安全檢查，跳過 LLM（預設 `false`） |
-| `force_llm` | boolean | 否 | 即使風險低也強制跑 LLM（預設 `false`） |
+| `quick_scan` | boolean | 否 | 僅跑安全檢查，跳過 LLM 深度分析（預設 `false`） |
+| `force_deep_analysis` | boolean | 否 | 即使風險低也強制跑 LLM 深度分析（預設 `false`） |
 
 ```json
 {
   "url": "https://example.com",
-  "skip_llm": false,
-  "force_llm": false
+  "quick_scan": false,
+  "force_deep_analysis": false
 }
 ```
 
@@ -245,7 +249,7 @@ try {
 | `security_check` | object | 安全檢查彙總（4 個 API 並行結果） |
 | `llm_analysis` | object \| null | LLM 深度分析結果 |
 | `content_classification` | object \| null | 內容適齡分類（僅路徑 B） |
-| `report` | object | **兒童友善報告（前端渲染用）** |
+| `report` | object \| null | **兒童友善報告（前端渲染用）** |
 | `final_risk_level` | string | 最終風險等級 |
 | `timestamp` | string | ISO 8601 UTC 時間戳 |
 
@@ -348,14 +352,14 @@ URL → 安全平台並行檢查（VT / URLhaus / PhishTank / Google SB）
 
 ---
 
-### `POST /api/v1/second-stage/analyze`
+### `POST /api/v1/scan/persuade`
 
 #### Request
 
 | 欄位 | 型別 | 必填 | 說明 |
 |------|------|:----:|------|
 | `user_input` | string | **是** | 使用者解釋為什麼仍想進入（min 1 字） |
-| `first_stage_report` | object | **是** | 第一階段回應中的 `report` 物件原封不動傳回 |
+| `first_stage_report` | ReportResponse | **是** | 第一階段回應中的 `report` 物件原封不動傳回 |
 
 ```json
 {
@@ -407,21 +411,26 @@ URL → 安全平台並行檢查（VT / URLhaus / PhishTank / Google SB）
 
 ```
 backend/
-├── main.py                          # FastAPI 入口
-├── config.py                        # 環境變數 / API 金鑰
+├── main.py                          # FastAPI 入口 + lifespan + middleware 註冊
+├── config.py                        # pydantic-settings 集中設定（Settings class）
+├── dependencies.py                  # FastAPI DI providers（方便測試時 override）
+├── middleware.py                    # Request-ID middleware + log filter
+├── exceptions.py                   # 統一例外處理（含 request_id）
 ├── pyproject.toml                   # uv 依賴管理
 ├── routers/
-│   ├── analyze.py                   # POST /api/v1/analyze（分流邏輯）
-│   └── second_stage.py              # POST /api/v1/second-stage/analyze
+│   ├── scan.py                      # POST /api/v1/scan
+│   └── persuade.py                  # POST /api/v1/scan/persuade
 ├── schemas/
-│   ├── requests.py                  # AnalyzeRequest, SecondStageRequest
-│   └── responses.py                 # AnalyzeResponse, SecondStageResponse, ...
+│   ├── requests.py                  # ScanRequest, PersuasionRequest
+│   └── responses.py                 # ScanResponse, PersuasionResponse, ReportResponse, ...
 ├── services/
 │   ├── security_checker.py          # async 並行 4 API 安全檢查
-│   ├── llm_analyzer.py              # Featherless AI（釣魚 + 內容風險）
+│   ├── threat_analysis.py           # Featherless AI 深度分析（釣魚 + 內容風險）
 │   ├── content_checker.py           # Exa AI 內容取得 + 適齡分類
+│   ├── scan_orchestrator.py         # 第一階段掃描流程編排
 │   ├── report_generator.py          # 兒童友善報告生成
-│   └── second_stage_analyzer.py     # 第二階段勸阻分析
+│   ├── quiz_generator.py            # 互動問答生成
+│   └── persuasion.py                # 第二階段勸阻分析
 ├── tests/
 │   ├── test_api.py                  # 端對端測試腳本
 │   └── output/                      # 測試輸出結果
@@ -436,34 +445,83 @@ backend/
 
 ## 環境變數 (.env)
 
-| 變數 | 必填 | 說明 |
-|------|------|------|
-| `FEATHERLESS_API_KEY` | ✅ | Featherless AI 金鑰 |
-| `EXA_API_KEY` | ✅* | Exa AI 金鑰（內容適齡檢查） |
-| `GOOGLE_SAFE_BROWSING_API_KEY` | 建議 | Google Safe Browsing v4 |
-| `VIRUSTOTAL_API_KEY` | 選填 | VirusTotal API v3 |
-| `URLHAUS_AUTH_KEY` | 選填 | URLhaus |
-| `PHISHTANK_API_KEY` | 選填 | PhishTank |
-| `HOST` | 否 | 監聽地址，預設 `0.0.0.0` |
-| `PORT` | 否 | 監聽 port，預設 `8000` |
-| `API_TIMEOUT` | 否 | 外部 API 呼叫逾時秒數，預設 `30` |
+完整範本見 `.env.example`。
 
-\* 未設定 `EXA_API_KEY` 時，僅保留資安檢查結果，無法做內容適齡分析。
+### Featherless AI（必填）
+
+| 變數 | 預設值 | 說明 |
+|------|--------|------|
+| `FEATHERLESS_API_KEY` | — | **必填**，Featherless AI 金鑰 |
+| `FEATHERLESS_BASE_URL` | `https://api.featherless.ai/v1` | OpenAI-compatible base URL |
+| `FEATHERLESS_MODEL` | `Qwen/Qwen2.5-7B-Instruct` | 模型名稱 |
+| `FEATHERLESS_TEMPERATURE` | `0.1` | 生成溫度 |
+| `FEATHERLESS_MAX_TOKENS` | `2000` | 最大 token 數 |
+| `FEATHERLESS_TOP_P` | `0.9` | Top-P 取樣 |
+
+### LLM 任務級覆寫
+
+| 變數 | 預設值 | 說明 |
+|------|--------|------|
+| `CONTENT_CLASSIFY_TEMPERATURE` | `0.1` | 內容分類溫度 |
+| `CONTENT_CLASSIFY_MAX_TOKENS` | `400` | 內容分類最大 tokens |
+| `PERSUASION_TEMPERATURE` | `0.1` | 勸阻分析溫度 |
+| `PERSUASION_MAX_TOKENS` | `1000` | 勸阻分析最大 tokens |
+
+### Exa AI（內容適齡檢查）
+
+| 變數 | 預設值 | 說明 |
+|------|--------|------|
+| `EXA_API_KEY` | — | **建議**，未設定則跳過內容適齡分析 |
+| `EXA_BASE_URL` | `https://api.exa.ai` | Exa API base URL |
+| `EXA_TIMEOUT` | `60` | 請求逾時秒數 |
+| `EXA_MAX_AGE_HOURS` | `24` | 快取最大時效 |
+| `EXA_LIVECRAWL_TIMEOUT_MS` | `25000` | Live crawl 逾時毫秒 |
+| `EXA_SEARCH_NUM_RESULTS` | `5` | 搜尋回傳筆數 |
+
+### Security API
+
+| 變數 | 說明 |
+|------|------|
+| `VIRUSTOTAL_API_KEY` | 選填，VirusTotal API v3 |
+| `VIRUSTOTAL_BASE_URL` | 預設 `https://www.virustotal.com/api/v3` |
+| `URLHAUS_AUTH_KEY` | 選填，URLhaus |
+| `URLHAUS_BASE_URL` | 預設 `https://urlhaus-api.abuse.ch/v1` |
+| `PHISHTANK_API_KEY` | 選填，PhishTank |
+| `PHISHTANK_BASE_URL` | 預設 `https://api.phishtank.com/v2/phishtank` |
+| `GOOGLE_SAFE_BROWSING_API_KEY` | 建議，Google Safe Browsing v4 |
+| `GOOGLE_SAFE_BROWSING_BASE_URL` | 預設 `https://safebrowsing.googleapis.com/v4` |
 
 > Security API Key 皆為可選。缺少的來源會自動跳過，不影響其他來源運作。但至少需要一組才能產生有意義的安全檢查結果。
+
+### 其他
+
+| 變數 | 預設值 | 說明 |
+|------|--------|------|
+| `CONTENT_MAX_CHARS` | `8000` | 內容分析截斷字數上限 |
+| `API_TIMEOUT` | `30` | 外部 API 呼叫逾時秒數 |
+| `HOST` | `0.0.0.0` | 監聽地址 |
+| `PORT` | `8000` | 監聽 port |
+| `APP_TITLE` | `ScoutNet API` | Swagger 標題 |
+| `APP_VERSION` | `2.0.0` | API 版本 |
+| `USER_AGENT` | `ScamAnalyzer/2.0` | 外部 API 呼叫用 User-Agent |
+| `CORS_ORIGINS` | `["*"]` | CORS 允許來源（JSON array 或逗號分隔） |
 
 ---
 
 ## 技術特點
 
-- **全 async**：security_checker 使用 `httpx` + `asyncio.gather` 並行呼叫 4 API
+- **全 async**：`security_checker` 使用 `httpx` + `asyncio.gather` 並行呼叫 4 API
 - **OpenAI SDK**：LLM 呼叫使用 `openai.AsyncOpenAI`（Featherless 相容）
-- **分層架構**：`routers/` → `services/` → `schemas/`，符合 FastAPI 最佳實踐
+- **pydantic-settings**：`config.py` 使用 `BaseSettings` 管理所有環境變數，支援型別驗證與預設值
+- **FastAPI DI**：`dependencies.py` 統一管理服務注入，方便測試時 override
+- **Request-ID**：`middleware.py` 自動為每個請求生成 `X-Request-ID`，貫穿 log 與錯誤回應
+- **統一錯誤處理**：`exceptions.py` 攔截 HTTP / 驗證 / 未處理例外，回應格式一致
+- **Orchestrator 模式**：`scan_orchestrator.py` 編排第一階段完整流程（安全檢查 → 分流 → LLM → 報告）
 - **兒童輔導員 persona**：所有 AI 分析以「18 歲以下兒童輔導員」角色回應
 - **釣魚預測**：自動推測使用者可能想去的正確網址 + 推薦替代網站
 - **LLM fallback**：LLM API 失敗時自動降級（`fallback_mode: true`），不會讓整個 request 失敗
 - **Stateless**：不存任何狀態，不寫檔案。前端帶完整 context，後端單純做 API proxy + orchestration
-- **CORS 已開啟**：正式上線前建議限縮 `allow_origins`
+- **CORS 可配置**：透過 `CORS_ORIGINS` 環境變數控制，正式上線前建議限縮
 
 ---
 
