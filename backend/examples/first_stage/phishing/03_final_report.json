@@ -1,0 +1,228 @@
+{
+  "report_metadata": {
+    "target_url": "https://allegrolokalnie.pl-oferta-id-133457-kategorie-id-192876.cfd",
+    "target_domain": "allegrolokalnie.pl-oferta-id-133457-kategorie-id-192876.cfd",
+    "target_tld": "cfd",
+    "timestamp": "2026-02-28T21:01:01.638616",
+    "risk": {
+      "level": "critical",
+      "score": 100,
+      "icon": "🔴",
+      "color": "#ef4444",
+      "label": "超級危險"
+    },
+    "confidence": {
+      "level": "high",
+      "icon": "✅",
+      "label": "很確定"
+    }
+  },
+  "kid_friendly_summary": {
+    "title": "🔴 超級危險！",
+    "simple_message": "🚨 這個網站很可能是騙人的，千萬不要點進去！",
+    "short_explanation": "這個網址被多個安全檢查平台標記為騙人的假網站，這意味著它可能用來騙取用戶的個人資訊，如信用卡號碼、密碼等。網址中的'.cfd'可能是騙人的假網站添加的偽造後綴，目的是讓它看起來像是真實的'allegrolokalnie.pl'網址。",
+    "emoji_reaction": "🔴",
+    "action_verb": "不要點"
+  },
+  "evidence_cards": [
+    {
+      "id": "evidence_1",
+      "icon": "🔍",
+      "title": "virustotal...",
+      "content": "virustotal: alphaMountain.ai, Sophos, Webroot",
+      "severity": "medium",
+      "expandable": false
+    }
+  ],
+  "pattern_analysis": {
+    "tld_analysis": {
+      "tld": "cfd",
+      "is_common": false,
+      "is_high_risk": true,
+      "kid_message": "網址的尾巴 `.cfd` 很少見，要特別小心"
+    },
+    "domain_structure": {
+      "length": 59,
+      "has_numbers": true,
+      "has_hyphens": true,
+      "kid_message": "域名長長又複雜，正規網站通常簡單喔"
+    },
+    "visual_summary": {
+      "url_parts": [
+        {
+          "part": "https://",
+          "label": "協定",
+          "safe": true
+        },
+        {
+          "part": "allegrolokalnie.pl-oferta-id-133457-kategorie-id-192876.cfd",
+          "label": "域名",
+          "safe": false
+        },
+        {
+          "part": "/",
+          "label": "路徑",
+          "safe": true
+        }
+      ]
+    }
+  },
+  "interactive_quiz": {
+    "enabled": true,
+    "question": "🔍 你覺得 `allegrolokalnie.pl-oferta-id-133457-kategorie-id-192876.cfd` 這個網址，哪裡「怪怪的」？",
+    "hint": "仔細看每個字母喔，騙子喜歡用數字代替字母！",
+    "type": "single_choice",
+    "options": [
+      {
+        "id": "A",
+        "text": "它跟真正的品牌網址長得好像，但有些地方不太一樣",
+        "is_correct": false,
+        "explanation": "只注意到「像」還不夠，要學會「逐字檢查每個字母」喔！",
+        "feedback_icon": "❌"
+      },
+      {
+        "id": "B",
+        "text": "它的「尾巴」是 .cfd，但正規網站通常是 .com",
+        "is_correct": false,
+        "explanation": ".cfd 確實可疑，但騙子也會用 .com，不能只看尾巴",
+        "feedback_icon": "❌"
+      },
+      {
+        "id": "C",
+        "text": "它用數字或符號代替字母（例如用 1 代替 l，0 代替 o）",
+        "is_correct": true,
+        "explanation": "答對啦！騙人的網站常用數字代替字母來混淆你，要逐字檢查！",
+        "feedback_icon": "✅"
+      },
+      {
+        "id": "D",
+        "text": "以上都是！🎉",
+        "is_correct": false,
+        "explanation": "D 看起來很誘人，但這題要選「最關鍵」的那個喔！",
+        "feedback_icon": "❌"
+      }
+    ],
+    "correct_answer_id": "C",
+    "learning_point": "看到很像知名品牌的網址，一定要「逐字檢查」＋「確認官方網址」！",
+    "difficulty": "medium"
+  },
+  "safety_tips": [
+    {
+      "id": "tip_1",
+      "icon": "🔍",
+      "tip": "使用官方應用程式或網站進行購物",
+      "why": "陌生連結可能帶你到騙人的網站",
+      "action_text": "記住囉！"
+    },
+    {
+      "id": "tip_2",
+      "icon": "🔐",
+      "tip": "定期檢查銀行和信用卡帳戶",
+      "why": "騙人的網站會偷走你的帳號",
+      "action_text": "記住囉！"
+    },
+    {
+      "id": "tip_3",
+      "icon": "👨‍👩‍👧",
+      "tip": "安裝防毒軟體並保持更新",
+      "why": "大人經驗多，可以幫你判斷",
+      "action_text": "記住囉！"
+    },
+    {
+      "id": "tip_4",
+      "icon": "🔖",
+      "tip": "把常用網站加入書籤",
+      "why": "避免打錯網址跑到假網站",
+      "action_text": "記住囉！"
+    }
+  ],
+  "next_steps": [
+    {
+      "action": "❌ 不要點擊此連結",
+      "priority": "high",
+      "icon": "🚫"
+    },
+    {
+      "action": "🔍 用 VirusTotal 再檢查一次",
+      "priority": "medium",
+      "icon": "🔎",
+      "link": "https://www.virustotal.com"
+    },
+    {
+      "action": "👨‍👩‍👧 問爸媽或老師",
+      "priority": "high",
+      "icon": "🗣️"
+    },
+    {
+      "action": "🌐 直接輸入官方網址訪問",
+      "priority": "medium",
+      "icon": "✅"
+    }
+  ],
+  "raw_analysis": {
+    "risk_level": "critical",
+    "confidence": "high",
+    "risk_score": 100,
+    "threat_summary": "這個網址被多個威脅情報平台標記為釣魚網站。",
+    "likely_intended_urls": [
+      "allegrolokalnie.pl"
+    ],
+    "intended_url_reason": "網址中的'allegrolokalnie.pl'是正確的官方網址，而'.cfd'可能是釣魚網站添加的偽造後綴。",
+    "alternative_recommendations": [
+      {
+        "name": "Allegro",
+        "url": "https://allegro.pl"
+      },
+      {
+        "name": "eBay",
+        "url": "https://www.ebay.com"
+      },
+      {
+        "name": "Amazon",
+        "url": "https://www.amazon.com"
+      },
+      {
+        "name": "Shopee",
+        "url": "https://shopee.tw"
+      }
+    ],
+    "evidence_analysis": [
+      "virustotal: alphaMountain.ai, Sophos, Webroot"
+    ],
+    "why_unsafe": "這個網址被多個威脅情報平台標記為釣魚網站，這意味著它可能用來騙取用戶的個人資訊，如信用卡號碼、密碼等。網址中的'.cfd'可能是釣魚網站添加的偽造後綴，目的是讓它看起來像是真實的'allegrolokalnie.pl'網址。",
+    "technical_details": {
+      "detected_by": [
+        "alphaMountain.ai",
+        "Sophos",
+        "Webroot",
+        "Forcepoint ThreatSeeker"
+      ],
+      "threat_types": [
+        "Phishing, Spam"
+      ],
+      "indicators": [
+        "phishing and fraud",
+        "phishing and other frauds"
+      ]
+    },
+    "user_warnings": [
+      "不要點擊不明來源的連結",
+      "不要在不熟悉的網站上輸入個人資訊",
+      "確認網址是否正確"
+    ],
+    "recommendations": [
+      "使用官方應用程式或網站進行購物",
+      "定期檢查銀行和信用卡帳戶",
+      "安裝防毒軟體並保持更新"
+    ],
+    "uncertainties": [],
+    "llm_metadata": {
+      "model": "Qwen/Qwen2.5-7B-Instruct",
+      "usage": {
+        "prompt_tokens": 1321,
+        "completion_tokens": 430,
+        "total_tokens": 1751
+      }
+    }
+  }
+}

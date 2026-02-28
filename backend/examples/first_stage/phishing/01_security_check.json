@@ -1,0 +1,106 @@
+{
+  "overall_risk": "critical",
+  "confidence": "high",
+  "risk_score": 100,
+  "checked_sources": 3,
+  "critical_flags": [
+    {
+      "source": "virustotal",
+      "threat_type": {
+        "alphaMountain.ai": "Phishing, Spam (alphaMountain.ai)",
+        "Sophos": "phishing and fraud",
+        "Webroot": "Phishing and Other Frauds",
+        "Forcepoint ThreatSeeker": "phishing and other frauds"
+      },
+      "details": {
+        "malicious": 20,
+        "suspicious": 1,
+        "harmless": 46,
+        "undetected": 27
+      }
+    },
+    {
+      "source": "google_safebrowsing",
+      "threat_type": null,
+      "details": [
+        {
+          "threatType": "SOCIAL_ENGINEERING",
+          "platformType": "ANY_PLATFORM",
+          "threat": {
+            "url": "https://allegrolokalnie.pl-oferta-id-133457-kategorie-id-192876.cfd"
+          },
+          "cacheDuration": "300s",
+          "threatEntryType": "URL"
+        }
+      ]
+    }
+  ],
+  "warnings": [],
+  "raw_results": [
+    {
+      "source": "virustotal",
+      "available": true,
+      "found": true,
+      "risk_level": "critical",
+      "stats": {
+        "malicious": 20,
+        "suspicious": 1,
+        "undetected": 27,
+        "harmless": 46,
+        "timeout": 0
+      },
+      "categories": {
+        "alphaMountain.ai": "Phishing, Spam (alphaMountain.ai)",
+        "Sophos": "phishing and fraud",
+        "Webroot": "Phishing and Other Frauds",
+        "Forcepoint ThreatSeeker": "phishing and other frauds"
+      },
+      "reputation": 0,
+      "last_analysis_date": 1772281581,
+      "details": {
+        "malicious": 20,
+        "suspicious": 1,
+        "harmless": 46,
+        "undetected": 27
+      }
+    },
+    {
+      "source": "urlhaus",
+      "available": true,
+      "found": false,
+      "message": "URL not listed in URLhaus database"
+    },
+    {
+      "source": "phishtank",
+      "available": false,
+      "error": "HTTPSConnectionPool(host='api.phishtank.com', port=443): Max retries exceeded with url: /v2/phishtank/verify (Caused by NameResolutionError(\"HTTPSConnection(host='api.phishtank.com', port=443): Failed to resolve 'api.phishtank.com' ([Errno 8] nodename nor servname provided, or not known)\"))"
+    },
+    {
+      "source": "google_safebrowsing",
+      "available": true,
+      "found": true,
+      "risk_level": "critical",
+      "threats": [
+        {
+          "threat_type": "SOCIAL_ENGINEERING",
+          "platform": "ANY_PLATFORM",
+          "cache_duration": "300s"
+        }
+      ],
+      "match_count": 1,
+      "details": [
+        {
+          "threatType": "SOCIAL_ENGINEERING",
+          "platformType": "ANY_PLATFORM",
+          "threat": {
+            "url": "https://allegrolokalnie.pl-oferta-id-133457-kategorie-id-192876.cfd"
+          },
+          "cacheDuration": "300s",
+          "threatEntryType": "URL"
+        }
+      ]
+    }
+  ],
+  "target_url": "https://allegrolokalnie.pl-oferta-id-133457-kategorie-id-192876.cfd",
+  "timestamp": "{\"$date\": \"2026-02-28 21:00:14.254077\"}"
+}

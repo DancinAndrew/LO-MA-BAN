@@ -1,0 +1,141 @@
+{
+  "target_url": "http://theync.com/media.php?name=15644-beheading",
+  "security_check": {
+    "overall_risk": "low",
+    "confidence": "high",
+    "risk_score": 0,
+    "checked_sources": 3,
+    "critical_flags": [],
+    "warnings": [],
+    "raw_results": [
+      {
+        "source": "virustotal",
+        "available": true,
+        "found": true,
+        "risk_level": "safe",
+        "stats": {
+          "malicious": 0,
+          "suspicious": 0,
+          "undetected": 28,
+          "harmless": 68,
+          "timeout": 0
+        },
+        "categories": {
+          "BitDefender": "porn",
+          "Xcitium Verdict Cloud": "news",
+          "Dr.Web": "adult content/violence",
+          "Sophos": "sexually explicit",
+          "Forcepoint ThreatSeeker": "violence"
+        },
+        "reputation": 0,
+        "last_analysis_date": 1740682930,
+        "details": {
+          "malicious": 0,
+          "suspicious": 0,
+          "harmless": 68,
+          "undetected": 28
+        }
+      },
+      {
+        "source": "urlhaus",
+        "available": true,
+        "found": false,
+        "message": "URL not listed in URLhaus database"
+      },
+      {
+        "source": "phishtank",
+        "available": false,
+        "error": "HTTPSConnectionPool(host='api.phishtank.com', port=443): Max retries exceeded with url: /v2/phishtank/verify (Caused by NameResolutionError(\"HTTPSConnection(host='api.phishtank.com', port=443): Failed to resolve 'api.phishtank.com' ([Errno 8] nodename nor servname provided, or not known)\"))"
+      },
+      {
+        "source": "google_safebrowsing",
+        "available": true,
+        "found": false,
+        "message": "No threats found in Google Safe Browsing database"
+      }
+    ],
+    "target_url": "http://theync.com/media.php?name=15644-beheading",
+    "timestamp": "{\"$date\": \"2026-02-28 20:45:23.374477\"}"
+  },
+  "content_classification": {
+    "labels": [
+      "血腥",
+      "暴力"
+    ],
+    "primary_label": "血腥",
+    "confidence": "high",
+    "explanation": "網頁內容包含極端暴力和血腥畫面，不适合兒童瀏覽。",
+    "is_unsuitable_for_children": true
+  },
+  "llm_analysis": {
+    "risk_level": "high",
+    "confidence": "high",
+    "risk_score": 95,
+    "threat_summary": "此網頁包含極端暴力和血腥畫面，不适合兒童瀏覽。",
+    "evidence_analysis": [
+      "網頁內容包含極端暴力和血腥畫面。",
+      "用戶留言提到網站中有令人作嘔的視頻。",
+      "用戶警告其他人不要點擊進入這些視頻，以免感到不安或恐懼。"
+    ],
+    "why_unsafe": "小朋友，這些網頁上的內容非常可怕，有很多血腥和暴力的畫面。這些畫面可能會讓你感到害怕或者不舒服。而且，這些內容對你的成長沒有任何好處。所以，我們要避免看這些內容，保護自己不受傷害。",
+    "technical_details": {
+      "detected_by": [
+        "內容分析"
+      ],
+      "threat_types": [
+        "血腥",
+        "暴力"
+      ],
+      "indicators": [
+        "極端暴力畫面",
+        "血腥畫面",
+        "用戶警告內容"
+      ]
+    },
+    "content_risk_type": "血腥",
+    "user_warnings": [
+      "不要點擊進入這些視頻，以免感到害怕或不安。",
+      "如果看到這樣的內容，馬上告訴大人。",
+      "避免在這些網站上浪費時間，應該做更有意義的事情。"
+    ],
+    "recommendations": [
+      "如果看到不適合的內容，馬上關閉網頁，告訴父母或老師。",
+      "不要點擊任何未知的連結，特別是那些看起來很恐怖或者奇怪的東西。",
+      "學習如何辨別哪些網站是安全的，哪些是不安全的。",
+      "多花時間在有益身心健康的活動上，比如閱讀、運動或者和朋友一起玩遊戲。"
+    ],
+    "uncertainties": [],
+    "quiz": {
+      "question": "如果你在瀏覽網頁時看到了非常血腥或暴力的內容，你应该怎么做？",
+      "options": [
+        {
+          "text": "繼續看下去，看看發生了什麼事情。",
+          "correct": false
+        },
+        {
+          "text": "馬上關閉網頁，告訴父母或老師。",
+          "correct": true
+        },
+        {
+          "text": "保存這些畫面，下次再看。",
+          "correct": false
+        },
+        {
+          "text": "分享這些內容給朋友，讓他們也看看。",
+          "correct": false
+        }
+      ]
+    },
+    "llm_metadata": {
+      "model": "Qwen/Qwen2.5-7B-Instruct",
+      "usage": {
+        "prompt_tokens": 1404,
+        "completion_tokens": 517,
+        "total_tokens": 1921
+      }
+    }
+  },
+  "risk_source": "content",
+  "final_risk_level": "high",
+  "timestamp": "2026-02-28T20:46:03.068370"
+}

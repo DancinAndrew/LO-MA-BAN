@@ -1,0 +1,57 @@
+{
+  "overall_risk": "low",
+  "confidence": "high",
+  "risk_score": 0,
+  "checked_sources": 3,
+  "critical_flags": [],
+  "warnings": [],
+  "raw_results": [
+    {
+      "source": "virustotal",
+      "available": true,
+      "found": true,
+      "risk_level": "safe",
+      "stats": {
+        "malicious": 0,
+        "suspicious": 0,
+        "undetected": 27,
+        "harmless": 67,
+        "timeout": 0
+      },
+      "categories": {
+        "alphaMountain.ai": "Pornography (alphaMountain.ai)",
+        "BitDefender": "porn",
+        "Dr.Web": "adult content",
+        "Sophos": "sexually explicit",
+        "Forcepoint ThreatSeeker": "sex"
+      },
+      "reputation": 0,
+      "last_analysis_date": 1772170801,
+      "details": {
+        "malicious": 0,
+        "suspicious": 0,
+        "harmless": 67,
+        "undetected": 27
+      }
+    },
+    {
+      "source": "urlhaus",
+      "available": true,
+      "found": false,
+      "message": "URL not listed in URLhaus database"
+    },
+    {
+      "source": "phishtank",
+      "available": false,
+      "error": "HTTPSConnectionPool(host='api.phishtank.com', port=443): Max retries exceeded with url: /v2/phishtank/verify (Caused by NameResolutionError(\"HTTPSConnection(host='api.phishtank.com', port=443): Failed to resolve 'api.phishtank.com' ([Errno 8] nodename nor servname provided, or not known)\"))"
+    },
+    {
+      "source": "google_safebrowsing",
+      "available": true,
+      "found": false,
+      "message": "No threats found in Google Safe Browsing database"
+    }
+  ],
+  "target_url": "https://cn.pornhub.com/",
+  "timestamp": "{\"$date\": \"2026-02-28 20:45:24.761885\"}"
+}
