@@ -12,7 +12,7 @@ from typing import Any
 
 import httpx
 
-from config import Config
+from config import Settings
 
 logger = logging.getLogger(__name__)
 
@@ -22,19 +22,20 @@ def _base64_url_id(url: str) -> str:
 
 
 class SecurityCheckerService:
-    def __init__(self) -> None:
-        self.timeout = Config.API_TIMEOUT
+    def __init__(self, settings: Settings) -> None:
+        self._s = settings
+        self.timeout = settings.api_timeout
 
     async def _check_virustotal(
         self, client: httpx.AsyncClient, target_url: str
     ) -> dict[str, Any]:
-        if not Config.VIRUSTOTAL_API_KEY:
+        if not self._s.virustotal_api_key:
             return {"source": "virustotal", "available": False, "reason": "API key not configured"}
         try:
             url_id = _base64_url_id(target_url)
             resp = await client.get(
-                f"{Config.VIRUSTOTAL_BASE_URL}/urls/{url_id}",
-                headers={"x-apikey": Config.VIRUSTOTAL_API_KEY, "Accept": "application/json"},
+                f"{self._s.virustotal_base_url}/urls/{url_id}",
+                headers={"x-apikey": self._s.virustotal_api_key, "Accept": "application/json"},
             )
             if resp.status_code == 404:
                 return {"source": "virustotal", "available": True, "found": False,
@@ -72,13 +73,13 @@ class SecurityCheckerService:
     async def _check_urlhaus(
         self, client: httpx.AsyncClient, target_url: str
     ) -> dict[str, Any]:
-        if not Config.URLHAUS_AUTH_KEY:
+        if not self._s.urlhaus_auth_key:
             return {"source": "urlhaus", "available": False, "reason": "Auth-Key not configured"}
         try:
             resp = await client.post(
                 "https://urlhaus-api.abuse.ch/v1/url/",
                 data={"url": target_url.strip().rstrip("/"), "format": "json"},
-                headers={"Auth-Key": Config.URLHAUS_AUTH_KEY,
+                headers={"Auth-Key": self._s.urlhaus_auth_key,
                          "User-Agent": "ScamAnalyzer/2.0", "Accept": "application/json"},
             )
             if resp.status_code == 200:
@@ -132,7 +133,7 @@ class SecurityCheckerService:
     async def _check_google_safebrowsing(
         self, client: httpx.AsyncClient, target_url: str
     ) -> dict[str, Any]:
-        if not Config.GOOGLE_SAFE_BROWSING_API_KEY:
+        if not self._s.google_safe_browsing_api_key:
             return {"source": "google_safebrowsing", "available": False,
                     "reason": "API key not configured"}
         try:
@@ -148,7 +149,7 @@ class SecurityCheckerService:
             }
             resp = await client.post(
                 "https://safebrowsing.googleapis.com/v4/threatMatches:find",
-                params={"key": Config.GOOGLE_SAFE_BROWSING_API_KEY},
+                params={"key": self._s.google_safe_browsing_api_key},
                 json=payload,
                 headers={"Content-Type": "application/json",
                          "User-Agent": "ScamAnalyzer/2.0"},

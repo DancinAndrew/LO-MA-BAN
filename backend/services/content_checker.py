@@ -1,6 +1,5 @@
 """
 ContentCheckerService — async Exa AI content fetching + Featherless safety classification.
-Replaces the old sync requests-based content_risk_checker.
 """
 from __future__ import annotations
 
@@ -11,7 +10,7 @@ from typing import Any
 import httpx
 from openai import AsyncOpenAI
 
-from config import Config
+from config import Settings
 
 logger = logging.getLogger(__name__)
 
@@ -35,17 +34,18 @@ def is_unsuitable_for_children(classification: dict[str, Any]) -> bool:
 class ContentCheckerService:
     """Fetch web content via Exa, classify suitability via Featherless."""
 
-    def __init__(self) -> None:
+    def __init__(self, settings: Settings) -> None:
+        self._s = settings
         self._openai = AsyncOpenAI(
-            base_url=Config.FEATHERLESS_BASE_URL,
-            api_key=Config.FEATHERLESS_API_KEY,
+            base_url=settings.featherless_base_url,
+            api_key=settings.featherless_api_key,
         )
 
     # ── Exa content fetch ──
 
     async def fetch_content(self, target_url: str) -> tuple[str | None, str | None]:
         """Fetch page content via Exa /contents, with cache + search fallback."""
-        if not Config.EXA_API_KEY:
+        if not self._s.exa_api_key:
             return None, "EXA_API_KEY 未設定"
 
         content, err, tag = await self._exa_contents(target_url, max_age_hours=24)
@@ -71,7 +71,7 @@ class ContentCheckerService:
         max_age_hours: int = 24,
         livecrawl_timeout_ms: int | None = 25000,
     ) -> tuple[str | None, str | None, str | None]:
-        headers = {"x-api-key": Config.EXA_API_KEY, "Content-Type": "application/json"}
+        headers = {"x-api-key": self._s.exa_api_key, "Content-Type": "application/json"}
         payload: dict[str, Any] = {"urls": [target_url], "text": True, "highlights": True}
         if max_age_hours is not None:
             payload["maxAgeHours"] = max_age_hours
@@ -96,7 +96,7 @@ class ContentCheckerService:
     async def _exa_search(
         self, target_url: str, num_results: int = 5
     ) -> tuple[str | None, str | None]:
-        headers = {"x-api-key": Config.EXA_API_KEY, "Content-Type": "application/json"}
+        headers = {"x-api-key": self._s.exa_api_key, "Content-Type": "application/json"}
         payload = {
             "query": target_url,
             "type": "auto",
@@ -163,7 +163,7 @@ class ContentCheckerService:
 
         try:
             resp = await self._openai.chat.completions.create(
-                model=Config.FEATHERLESS_MODEL,
+                model=self._s.featherless_model,
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_content},

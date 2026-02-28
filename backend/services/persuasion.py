@@ -1,5 +1,5 @@
 """
-SecondStageAnalyzerService — async analysis for users who insist on visiting a harmful site.
+PersuasionService — async analysis for users who insist on visiting a harmful site.
 Combines user's stated reason with first-stage report for persuasion + education.
 """
 from __future__ import annotations
@@ -10,11 +10,11 @@ from typing import Any
 
 from openai import AsyncOpenAI
 
-from config import Config
+from config import Settings
 
 logger = logging.getLogger(__name__)
 
-SECOND_STAGE_SYSTEM_PROMPT = """\
+PERSUASION_SYSTEM_PROMPT = """\
 你是一位關心 18 歲以下兒童的網路安全輔導員。當使用者已經被告知某個連結有風險（可能是釣魚詐騙、色情、暴力等），但仍說出想進去的理由時，你要用溫暖但堅定的方式勸阻並教育。
 
 請基於「第一階段安全報告」與「用戶自述的理由」，輸出結構化 JSON：
@@ -43,29 +43,28 @@ SECOND_STAGE_SYSTEM_PROMPT = """\
 - 用小朋友聽得懂的語言
 - 先表達理解（同理心），再說明風險
 - 不要恐嚇，而是引導
-- 根據風險類型調整語氣（釣魚 → 強調個資安全；色情 → 強調身心影響；暴力 → 強調心理健康）
+- 根據風險類型調整語氣（釣魚 -> 強調個資安全；色情 -> 強調身心影響；暴力 -> 強調心理健康）
 """
 
 
-class SecondStageAnalyzerService:
-    def __init__(self) -> None:
+class PersuasionService:
+    def __init__(self, settings: Settings) -> None:
         self._client = AsyncOpenAI(
-            base_url=Config.FEATHERLESS_BASE_URL,
-            api_key=Config.FEATHERLESS_API_KEY,
+            base_url=settings.featherless_base_url,
+            api_key=settings.featherless_api_key,
         )
-        self.model = Config.FEATHERLESS_MODEL
+        self.model = settings.featherless_model
 
     async def analyze(
         self, user_input: str, first_stage_report: dict[str, Any]
     ) -> dict[str, Any]:
-        """Run second-stage persuasion analysis. Returns the full output dict."""
         user_prompt = self._build_user_prompt(user_input, first_stage_report)
 
         try:
             resp = await self._client.chat.completions.create(
                 model=self.model,
                 messages=[
-                    {"role": "system", "content": SECOND_STAGE_SYSTEM_PROMPT},
+                    {"role": "system", "content": PERSUASION_SYSTEM_PROMPT},
                     {"role": "user", "content": user_prompt},
                 ],
                 temperature=0.1,
@@ -75,7 +74,7 @@ class SecondStageAnalyzerService:
             content = resp.choices[0].message.content or "{}"
             result: dict[str, Any] = json.loads(content)
         except Exception as exc:
-            logger.error("Second-stage LLM call failed: %s", exc)
+            logger.error("Persuasion LLM call failed: %s", exc)
             result = self._fallback()
 
         risk_meta = first_stage_report.get("report_metadata", {}).get("risk", {})
