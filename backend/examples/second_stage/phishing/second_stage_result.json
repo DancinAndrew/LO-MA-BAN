@@ -1,0 +1,29 @@
+{
+  "user_input": "我知道你們說這是釣魚網站，但我覺得你們可能分析錯了。我之前有在 Allegro Lokalnie 上買過東西，這個連結是賣家傳給我的，我怕錯過訂單的確認頁面。而且我覺得光是點進去看一下應該不會怎樣吧？我又不會輸入密碼，就看看頁面長什麼樣子而已。如果真的是假的我馬上關掉就好了，應該來得及吧？",
+  "first_stage_report_summary": {
+    "target_url": "https://allegrolokalnie.pl-oferta-id-133457-kategorie-id-192876.cfd",
+    "risk_level": "critical",
+    "risk_label": "超級危險",
+    "risk_score": 100,
+    "risk_source": "phishing"
+  },
+  "second_stage_result": {
+    "behavior_consequence_warning": "如果你真的點擊這個連結，可能會讓壞人得到你的個人資訊，比如你的名字、生日甚至是你家人的聯絡方式。這些資訊對他們來說非常有用，他們可能會用這些資料做壞事。",
+    "reason_analysis": {
+      "is_reasonable": false,
+      "analysis": "我知道你很想知道是不是真的錯過了訂單確認頁面，但這樣做不安全。即使你只是看一眼，壞人還是有可能從其他地方得到你的個人資訊。",
+      "empathy_note": "我理解你想要確認訂單的心情，但是我們需要更安全的方法來處理這種情況。"
+    },
+    "general_warnings": [
+      "永遠不要點擊你不認識的人寄來的連結。",
+      "如果你真的擔心錯過了訂單，可以打電話給賣家確認。",
+      "學習如何辨識騙人的網站是很重要的。"
+    ],
+    "recommended_actions": [
+      "和爸爸媽媽一起打電話給賣家確認是否有新的訂單。",
+      "使用安全瀏覽器插件檢查這個連結是否安全。",
+      "如果未來遇到類似的情況，可以先查一下賣家的官方網站或客服電話。"
+    ],
+    "encouraging_message": "你做得很好，能夠意識到這個連結有風險。我們一起找到更好的解決方法，確保你的個人資訊安全。加油！"
+  }
+}

@@ -14,22 +14,24 @@
       "stats": {
         "malicious": 0,
         "suspicious": 0,
-        "undetected": 29,
-        "harmless": 65,
+        "undetected": 28,
+        "harmless": 68,
         "timeout": 0
       },
       "categories": {
-        "BitDefender": "searchengines",
-        "Sophos": "search engines",
-        "Forcepoint ThreatSeeker": "reference materials"
+        "BitDefender": "porn",
+        "Xcitium Verdict Cloud": "news",
+        "Dr.Web": "adult content/violence",
+        "Sophos": "sexually explicit",
+        "Forcepoint ThreatSeeker": "violence"
       },
-      "reputation": 67,
-      "last_analysis_date": 1772268958,
+      "reputation": 0,
+      "last_analysis_date": 1740682930,
       "details": {
         "malicious": 0,
         "suspicious": 0,
-        "harmless": 65,
-        "undetected": 29
+        "harmless": 68,
+        "undetected": 28
       }
     },
     {
@@ -50,6 +52,6 @@
       "message": "No threats found in Google Safe Browsing database"
     }
   ],
-  "target_url": "https://www.google.com/maps",
-  "timestamp": "{\"$date\": \"2026-02-28 17:14:23.804372\"}"
+  "target_url": "http://theync.com/media.php?name=15644-beheading",
+  "timestamp": "{\"$date\": \"2026-02-28 20:45:23.374477\"}"
 }
