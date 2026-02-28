@@ -1,19 +1,18 @@
 /**
- * 偵測網站模組 — ScoutNet 網站安全偵測
+ * Site detection module — ScoutNet web safety detection.
  *
- * 整合位置說明：
+ * Integration points:
  *
- * 1. 【前端彈出視窗 / 內容腳本】
- *    - 若做 Chrome 擴充：在 popup 或 content script 取得目前分頁 URL
- *    - 呼叫 getSiteData(currentUrl) 或透過 chrome.runtime.sendMessage 向 background 要結果
+ * 1. Frontend (popup / content script)
+ *    - For Chrome extension: get current tab URL in popup or content script
+ *    - Call getSiteData(currentUrl) or use chrome.runtime.sendMessage to get result from background
  *
- * 2. 【背景腳本 (background / service worker)】
- *    - 在 background.js 裡實作實際偵測邏輯（比對惡意網址表、檢查 HTTPS、相似網址等）
- *    - 用 chrome.tabs.query 取得 activeTab 的 url，偵測完回傳 SiteData
+ * 2. Background (service worker)
+ *    - Implement detection logic in background (blocklist, HTTPS, lookalike URLs, etc.)
+ *    - Use chrome.tabs.query for activeTab url, then return SiteData
  *
- * 3. 【API 後端】
- *    - 若改為透過後端 API 偵測：在此改為 fetch('/api/check-url', { body: url })
- *    - 將 API 回傳結果轉成 SiteData 型別
+ * 3. Backend API
+ *    - To use a backend: replace with fetch('/api/check-url', { body: url }) and map response to SiteData
  */
 
 export type SiteData = {
@@ -24,7 +23,7 @@ export type SiteData = {
   warnings: string[];
 };
 
-/** 僅對這些網址或 host 回傳高風險（用來測試 ScoutNet 警示）；其餘一律 low */
+/** Only these URLs/hosts return high risk (for testing ScoutNet warning); all others are low */
 const RISKY_TEST_HOSTS = ['paypa1.com', 'paypa1.example.com', 'evil-phishing.test']
 
 function isTestRiskyUrl(url: string): boolean {
@@ -38,10 +37,9 @@ function isTestRiskyUrl(url: string): boolean {
 }
 
 /**
- * 取得目前網址的偵測結果。
- * 整合時請在此改為：
- * - Chrome 擴充：chrome.tabs.query 取 url → 送 background 或本地比對 → 回傳
- * - 或 fetch 你的後端 API → 回傳
+ * Get detection result for the given URL.
+ * For integration, replace with: Chrome extension (chrome.tabs.query → background or local check),
+ * or fetch your backend API and return SiteData.
  */
 export async function getSiteData(url?: string): Promise<SiteData> {
   const targetUrl = url ?? ''
@@ -61,7 +59,7 @@ export async function getSiteData(url?: string): Promise<SiteData> {
     }
   }
 
-  // 預設：安全，不擋
+  // Default: safe, don't block
   return {
     currentUrl: targetUrl || 'https://example.com',
     correctUrl: null,
@@ -72,8 +70,8 @@ export async function getSiteData(url?: string): Promise<SiteData> {
 }
 
 /**
- * 同步取得預設/快取結果（給 React 初次 render 用）。
- * 若已從 extension 或 API 拿到資料，可直接傳入 ScoutNet，不必呼叫此函式。
+ * Synchronous default/cached result for React initial render.
+ * If you already have data from extension or API, pass it to ScoutNet and skip this.
  */
 export function getDefaultSiteData(): SiteData {
   return {
