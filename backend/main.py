@@ -14,6 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from config import Config
 from schemas.responses import HealthResponse
 from routers.analyze import router as analyze_router
+from routers.second_stage import router as second_stage_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -23,7 +24,7 @@ logging.basicConfig(
 
 app = FastAPI(
     title="ScoutNet API",
-    description="Backend proxy for ScoutNet Chrome Extension — security check + AI analysis",
+    description="兒童網路安全網址分析 API — 資安檢查 + AI 內容適齡分析",
     version="2.0.0",
 )
 
@@ -36,6 +37,7 @@ app.add_middleware(
 )
 
 app.include_router(analyze_router)
+app.include_router(second_stage_router)
 
 
 @app.get("/health", response_model=HealthResponse, tags=["system"])

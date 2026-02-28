@@ -25,36 +25,25 @@ class SecurityCheckerService:
     def __init__(self) -> None:
         self.timeout = Config.API_TIMEOUT
 
-    # ------------------------------------------------------------------
-    # Individual checkers
-    # ------------------------------------------------------------------
-
     async def _check_virustotal(
         self, client: httpx.AsyncClient, target_url: str
     ) -> dict[str, Any]:
         if not Config.VIRUSTOTAL_API_KEY:
             return {"source": "virustotal", "available": False, "reason": "API key not configured"}
-
         try:
             url_id = _base64_url_id(target_url)
             resp = await client.get(
                 f"{Config.VIRUSTOTAL_BASE_URL}/urls/{url_id}",
-                headers={
-                    "x-apikey": Config.VIRUSTOTAL_API_KEY,
-                    "Accept": "application/json",
-                },
+                headers={"x-apikey": Config.VIRUSTOTAL_API_KEY, "Accept": "application/json"},
             )
-
             if resp.status_code == 404:
                 return {"source": "virustotal", "available": True, "found": False,
                         "message": "URL not found in VirusTotal database"}
-
             if resp.status_code == 200:
                 attrs = resp.json().get("data", {}).get("attributes", {})
                 stats = attrs.get("last_analysis_stats", {})
                 mal = stats.get("malicious", 0)
                 sus = stats.get("suspicious", 0)
-
                 if mal > 3 or (mal + sus) > 5:
                     risk = "critical"
                 elif mal > 0 or sus > 2:
@@ -63,7 +52,6 @@ class SecurityCheckerService:
                     risk = "caution"
                 else:
                     risk = "safe"
-
                 return {
                     "source": "virustotal", "available": True, "found": True,
                     "risk_level": risk, "stats": stats,
@@ -74,7 +62,6 @@ class SecurityCheckerService:
                                 "harmless": stats.get("harmless", 0),
                                 "undetected": stats.get("undetected", 0)},
                 }
-
             logger.error("VirusTotal API %s: %s", resp.status_code, resp.text[:200])
             return {"source": "virustotal", "available": True,
                     "error": f"HTTP {resp.status_code}", "message": resp.text[:200]}
@@ -87,19 +74,13 @@ class SecurityCheckerService:
     ) -> dict[str, Any]:
         if not Config.URLHAUS_AUTH_KEY:
             return {"source": "urlhaus", "available": False, "reason": "Auth-Key not configured"}
-
         try:
-            clean_url = target_url.strip().rstrip("/")
             resp = await client.post(
                 "https://urlhaus-api.abuse.ch/v1/url/",
-                data={"url": clean_url, "format": "json"},
-                headers={
-                    "Auth-Key": Config.URLHAUS_AUTH_KEY,
-                    "User-Agent": "ScamAnalyzer/2.0",
-                    "Accept": "application/json",
-                },
+                data={"url": target_url.strip().rstrip("/"), "format": "json"},
+                headers={"Auth-Key": Config.URLHAUS_AUTH_KEY,
+                         "User-Agent": "ScamAnalyzer/2.0", "Accept": "application/json"},
             )
-
             if resp.status_code == 200:
                 data = resp.json()
                 status = data.get("query_status")
@@ -119,9 +100,7 @@ class SecurityCheckerService:
                                     "status": info.get("url_status"),
                                     "blacklists": info.get("blacklists", {})},
                     }
-                return {"source": "urlhaus", "available": True, "found": False,
-                        "query_status": status}
-
+                return {"source": "urlhaus", "available": True, "found": False, "query_status": status}
             return {"source": "urlhaus", "available": True, "found": False,
                     "http_status": resp.status_code, "error_detail": resp.text[:100]}
         except Exception as exc:
@@ -156,15 +135,12 @@ class SecurityCheckerService:
         if not Config.GOOGLE_SAFE_BROWSING_API_KEY:
             return {"source": "google_safebrowsing", "available": False,
                     "reason": "API key not configured"}
-
         try:
             payload = {
                 "client": {"clientId": "scamanalyzer", "clientVersion": "2.0.0"},
                 "threatInfo": {
-                    "threatTypes": [
-                        "MALWARE", "SOCIAL_ENGINEERING",
-                        "UNWANTED_SOFTWARE", "POTENTIALLY_HARMFUL_APPLICATION",
-                    ],
+                    "threatTypes": ["MALWARE", "SOCIAL_ENGINEERING",
+                                    "UNWANTED_SOFTWARE", "POTENTIALLY_HARMFUL_APPLICATION"],
                     "platformTypes": ["ANY_PLATFORM"],
                     "threatEntryTypes": ["URL"],
                     "threatEntries": [{"url": target_url.strip()}],
@@ -177,34 +153,24 @@ class SecurityCheckerService:
                 headers={"Content-Type": "application/json",
                          "User-Agent": "ScamAnalyzer/2.0"},
             )
-
             if resp.status_code == 200:
                 matches = resp.json().get("matches", [])
                 if matches:
                     threats = [{"threat_type": m.get("threatType"),
                                 "platform": m.get("platformType"),
-                                "cache_duration": m.get("cacheDuration")}
-                               for m in matches]
+                                "cache_duration": m.get("cacheDuration")} for m in matches]
                     return {"source": "google_safebrowsing", "available": True,
                             "found": True, "risk_level": "critical",
-                            "threats": threats, "match_count": len(matches),
-                            "details": matches}
-                return {"source": "google_safebrowsing", "available": True,
-                        "found": False,
+                            "threats": threats, "match_count": len(matches), "details": matches}
+                return {"source": "google_safebrowsing", "available": True, "found": False,
                         "message": "No threats found in Google Safe Browsing database"}
-
             logger.error("Google SB HTTP %s: %s", resp.status_code, resp.text[:200])
             return {"source": "google_safebrowsing", "available": True,
                     "error": f"HTTP {resp.status_code}",
                     "details": resp.text[:200]}
         except Exception as exc:
             logger.error("Google Safe Browsing failed: %s", exc)
-            return {"source": "google_safebrowsing", "available": False,
-                    "error": str(exc)}
-
-    # ------------------------------------------------------------------
-    # Aggregation
-    # ------------------------------------------------------------------
+            return {"source": "google_safebrowsing", "available": False, "error": str(exc)}
 
     @staticmethod
     def _aggregate(results: list[dict[str, Any]]) -> dict[str, Any]:
@@ -220,7 +186,6 @@ class SecurityCheckerService:
             checked += 1
             risk = r.get("risk_level", "safe")
             total_score += weights.get(risk, 0)
-
             if risk == "critical":
                 critical_flags.append({
                     "source": r["source"],
@@ -228,10 +193,8 @@ class SecurityCheckerService:
                     "details": r.get("details", {}),
                 })
             elif risk in ("warning", "caution"):
-                warnings.append({
-                    "source": r["source"],
-                    "reason": r.get("message") or r.get("stats"),
-                })
+                warnings.append({"source": r["source"],
+                                 "reason": r.get("message") or r.get("stats")})
 
         if checked == 0:
             overall, confidence = "inconclusive", "low"
@@ -255,13 +218,8 @@ class SecurityCheckerService:
             "raw_results": results,
         }
 
-    # ------------------------------------------------------------------
-    # Public entry
-    # ------------------------------------------------------------------
-
     async def check_all(self, target_url: str) -> dict[str, Any]:
         logger.info("Security check started: %s", target_url)
-
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             results = await asyncio.gather(
                 self._check_virustotal(client, target_url),
@@ -269,10 +227,8 @@ class SecurityCheckerService:
                 self._check_phishtank(client, target_url),
                 self._check_google_safebrowsing(client, target_url),
             )
-
         aggregated = self._aggregate(list(results))
         aggregated["target_url"] = target_url
         aggregated["timestamp"] = datetime.now(timezone.utc).isoformat()
-
         logger.info("Security check done — risk: %s", aggregated["overall_risk"])
         return aggregated

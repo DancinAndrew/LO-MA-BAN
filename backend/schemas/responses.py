@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
 
 
@@ -8,31 +8,30 @@ from pydantic import BaseModel, Field
 
 class CriticalFlag(BaseModel):
     source: str
-    threat_type: Any | None = None
-    details: dict[str, Any] = Field(default_factory=dict)
+    threat_type: Optional[Any] = None
+    details: Dict[str, Any] = Field(default_factory=dict)
 
 
 class Warning(BaseModel):
     source: str
-    reason: Any | None = None
+    reason: Optional[Any] = None
 
 
-class SecurityCheckResult(BaseModel):
-    overall_risk: str
-    confidence: str
-    risk_score: int
-    checked_sources: int
-    critical_flags: list[CriticalFlag] = Field(default_factory=list)
-    warnings: list[Warning] = Field(default_factory=list)
-    raw_results: list[dict[str, Any]] = Field(default_factory=list)
-    target_url: str
-    timestamp: str
+class SecurityCheckResult(BaseModel, extra="allow"):
+    overall_risk: str = "inconclusive"
+    confidence: str = "low"
+    risk_score: int = 0
+    checked_sources: int = 0
+    critical_flags: List[CriticalFlag] = Field(default_factory=list)
+    warnings: List[Warning] = Field(default_factory=list)
+    raw_results: List[Dict[str, Any]] = Field(default_factory=list)
+    target_url: str = ""
+    timestamp: str = ""
 
 
 # ---------- LLM analysis ----------
 
 class LLMAnalysisResult(BaseModel, extra="allow"):
-    """LLM response is semi-structured; extra fields are preserved."""
     risk_level: str = "inconclusive"
     confidence: str = "low"
     risk_score: int = 50
@@ -43,25 +42,33 @@ class LLMAnalysisResult(BaseModel, extra="allow"):
 # ---------- Report ----------
 
 class ReportResponse(BaseModel, extra="allow"):
-    """Full kid-friendly report; flexible shape forwarded from ReportGenerator."""
-    report_metadata: dict[str, Any] = Field(default_factory=dict)
-    kid_friendly_summary: dict[str, Any] = Field(default_factory=dict)
-    evidence_cards: list[dict[str, Any]] = Field(default_factory=list)
-    pattern_analysis: dict[str, Any] = Field(default_factory=dict)
-    interactive_quiz: dict[str, Any] = Field(default_factory=dict)
-    safety_tips: list[dict[str, Any]] = Field(default_factory=list)
-    next_steps: list[dict[str, Any]] = Field(default_factory=list)
+    report_metadata: Dict[str, Any] = Field(default_factory=dict)
+    kid_friendly_summary: Dict[str, Any] = Field(default_factory=dict)
+    evidence_cards: List[Dict[str, Any]] = Field(default_factory=list)
+    pattern_analysis: Dict[str, Any] = Field(default_factory=dict)
+    interactive_quiz: Dict[str, Any] = Field(default_factory=dict)
+    safety_tips: List[Dict[str, Any]] = Field(default_factory=list)
+    next_steps: List[Dict[str, Any]] = Field(default_factory=list)
+    raw_analysis: Dict[str, Any] = Field(default_factory=dict)
 
 
-# ---------- Top-level response ----------
+# ---------- Top-level responses ----------
 
 class AnalyzeResponse(BaseModel):
     target_url: str
-    security_check: SecurityCheckResult
-    llm_analysis: dict[str, Any] | None = None
-    report: ReportResponse
-    final_risk_level: str
-    timestamp: str
+    risk_source: str = "phishing"
+    security_check: Dict[str, Any] = Field(default_factory=dict)
+    llm_analysis: Optional[Dict[str, Any]] = None
+    content_classification: Optional[Dict[str, Any]] = None
+    report: Optional[ReportResponse] = None
+    final_risk_level: str = "inconclusive"
+    timestamp: str = ""
+
+
+class SecondStageResponse(BaseModel):
+    user_input: str
+    first_stage_report_summary: Dict[str, Any] = Field(default_factory=dict)
+    second_stage_result: Dict[str, Any] = Field(default_factory=dict)
 
 
 class HealthResponse(BaseModel):

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -18,6 +20,9 @@ class Config:
         os.getenv("FEATHERLESS_TEMPERATURE", "0.1")
     )
     FEATHERLESS_MAX_TOKENS: int = int(os.getenv("FEATHERLESS_MAX_TOKENS", "2000"))
+
+    # --- Exa AI ---
+    EXA_API_KEY: str = os.getenv("EXA_API_KEY", "")
 
     # --- Security API keys ---
     API_TIMEOUT: int = int(os.getenv("API_TIMEOUT", "30"))
