@@ -4,7 +4,7 @@
  */
 
 const env = typeof import.meta !== 'undefined' ? (import.meta as { env?: Record<string, string> }).env : undefined
-const API_BASE_URL = env?.VITE_SCOUTNET_API_URL || 'http://localhost:8000'
+const API_BASE_URL = env?.VITE_SCOUTNET_API_URL || 'http://localhost:8001'
 const PREVIEW_PATH = env?.VITE_SCOUTNET_PREVIEW_PATH || '/api/preview-url'
 
 const PREVIEW_TIMEOUT_MS = 20000

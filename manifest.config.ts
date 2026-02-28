@@ -20,7 +20,11 @@ export default defineManifest({
     },
   ],
   permissions: ['storage', 'activeTab', 'tabs', 'webNavigation'],
-  host_permissions: ['http://localhost:8000/*', 'http://127.0.0.1:8000/*'],
+  host_permissions: [
+    'http://localhost:8001/*',
+    'http://127.0.0.1:8001/*',
+    'https://lo-ma-ban-production.up.railway.app/*',
+  ],
   icons: {
     '16': 'icons/icon-16.png',
     '48': 'icons/icon-48.png',

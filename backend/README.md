@@ -454,6 +454,33 @@ backend/
 
 ---
 
+## 部署 API（Deploy）
+
+### Railway
+
+1. **建立專案**：到 [Railway](https://railway.app) 建立新專案，選擇 **Deploy from GitHub repo**，選取本專案。
+2. **設定 Root Directory**：在專案 Settings → **Root Directory** 設為 `backend`（讓 build 與 start 都在 `backend/` 下執行）。
+3. **Build**：Railway 會依 `requirements.txt` 執行 `pip install -r requirements.txt`（或 Nixpacks 偵測 Python 後安裝依賴）。
+4. **Start Command**（若未自動偵測 Procfile）：  
+   `uvicorn main:app --host 0.0.0.0 --port $PORT`  
+   （`Procfile` 已寫好則可省略此步。）
+5. **環境變數**：在 Railway 專案 → **Variables** 新增 `.env` 中需要的變數，至少：
+   - `FEATHERLESS_API_KEY`（必填）
+   - `EXA_API_KEY`（內容適齡需要）
+   - 其餘 Security API 金鑰依需求新增。
+6. **部署完成**：Railway 會給一個公開 URL（如 `https://xxx.up.railway.app`）。  
+   - Health check：`GET https://你的網址/health`  
+   - 分析 API：`POST https://你的網址/api/v1/analyze`，body `{ "url": "https://example.com" }`。
+7. **前端串接**：在 extension 的 `src/siteDetection.ts` 將 `ANALYZE_API_URL` 改為你的 Railway URL + `/api/v1/analyze`，並在 `manifest.config.ts` 的 `host_permissions` 加入該網域。
+
+### 其他平台（Render / Fly.io / 自建主機）
+
+- **Render**：選 Python Web Service，Root Directory 設 `backend`，Build Command：`pip install -r requirements.txt`，Start Command：`uvicorn main:app --host 0.0.0.0 --port $PORT`。
+- **Fly.io**：可加一個 `Dockerfile` 用 `python:3.12-slim` + `pip install -r requirements.txt` + `CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]`，並在 `fly.toml` 設定 `internal_port = 8000` 與 env。
+- **自建**：`pip install -r requirements.txt` 後執行 `uvicorn main:app --host 0.0.0.0 --port 8000`，或用 Gunicorn：`gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000`。
+
+---
+
 ## 技術特點
 
 - **全 async**：security_checker 使用 `httpx` + `asyncio.gather` 並行呼叫 4 API

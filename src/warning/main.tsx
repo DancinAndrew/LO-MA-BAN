@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import ScoutNet from '../components/ScoutNet'
 import type { SiteData } from '../siteDetection'
-import { getDefaultSiteData } from '../siteDetection'
+import { EMPTY_SITE_DATA } from '../siteDetection'
 import { getPreviewImage, PREVIEW_API_URL } from '../previewApi'
 import '../styles/ScoutNet.css'
 
@@ -13,7 +13,7 @@ type PendingNavigation = {
   tabId: number
   targetUrl: string
   sourceUrl?: string
-  siteData: SiteData
+  siteData: SiteData | null
   createdAt: number
 }
 
@@ -30,17 +30,34 @@ function WarningApp() {
   const [previewError, setPreviewError] = useState(false)
   const [previewUrlInvalid, setPreviewUrlInvalid] = useState(false)
 
-  useEffect(() => {
-    chrome.storage.session.get([SESSION_KEY_DETECTION, SESSION_KEY_PENDING]).then((result) => {
+  const readSession = useCallback(() => {
+    return chrome.storage.session.get([SESSION_KEY_DETECTION, SESSION_KEY_PENDING]).then((result) => {
       const p = result[SESSION_KEY_PENDING] as PendingNavigation | undefined
       setPending(p ?? null)
-      const data = (p?.siteData ?? (result[SESSION_KEY_DETECTION] as SiteData | undefined)) ?? getDefaultSiteData()
-      setSiteData(data)
-      setLoading(false)
+      const data = p?.siteData ?? (result[SESSION_KEY_DETECTION] as SiteData | undefined)
+      setSiteData(data ?? null)
     })
   }, [])
 
-  const onLeaveSite = () => window.history.back()
+  useEffect(() => {
+    readSession().then(() => setLoading(false))
+  }, [readSession])
+
+  useEffect(() => {
+    const listener = (
+      changes: { [key: string]: chrome.storage.StorageChange },
+      areaName: string
+    ) => {
+      if (areaName !== 'session') return
+      if (SESSION_KEY_DETECTION in changes || SESSION_KEY_PENDING in changes) readSession()
+    }
+    chrome.storage.onChanged.addListener(listener)
+    return () => chrome.storage.onChanged.removeListener(listener)
+  }, [readSession])
+
+  const onLeaveSite = useCallback(() => {
+    chrome.runtime.sendMessage({ type: 'LEAVE_SITE' })
+  }, [])
 
   /** When user clicks "I still want to go": show reason input step first */
   const onProceedToUrl = useCallback(() => {
@@ -102,7 +119,45 @@ function WarningApp() {
     )
   }
 
-  const data = siteData ?? pending?.siteData ?? getDefaultSiteData()
+  const detecting = Boolean(pending && siteData === null)
+
+  if (detecting) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent' }}>
+        <div
+          style={{
+            background: '#fff',
+            borderRadius: 12,
+            boxShadow: '0 4px 20px rgba(0,0,0,0.15), 0 0 1px rgba(0,0,0,0.1)',
+            padding: '12px 16px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            minWidth: 200,
+            maxWidth: 320,
+          }}
+        >
+          <div
+            style={{
+              width: 16,
+              height: 16,
+              flexShrink: 0,
+              borderRadius: '999px',
+              border: '2px solid rgba(0,0,0,0.1)',
+              borderTopColor: '#f59e0b',
+              animation: 'scoutnet-spin 0.7s linear infinite',
+            }}
+          />
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#334155' }}>Detecting…</div>
+            <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>Checking this link. Please wait.</div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const data = siteData ?? pending?.siteData ?? EMPTY_SITE_DATA
 
   return (
     <>

@@ -18,14 +18,14 @@ type PendingNavigation = {
   tabId: number
   targetUrl: string
   sourceUrl?: string
-  siteData: SiteData
+  siteData: SiteData | null
   createdAt: number
 }
 
 async function setPendingNavigation(pending: PendingNavigation) {
   await chrome.storage.session.set({
     [SESSION_KEY_PENDING]: pending,
-    [SESSION_KEY_DETECTION]: pending.siteData,
+    [SESSION_KEY_DETECTION]: pending.siteData ?? null,
   })
 }
 
@@ -56,12 +56,20 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       }
 
       try {
+        const warnedKey = `${tabId}:${targetUrl}`
+        await chrome.storage.session.set({ [SESSION_KEY_WARNED]: warnedKey })
+        await setPendingNavigation({
+          tabId,
+          targetUrl,
+          sourceUrl,
+          siteData: null,
+          createdAt: Date.now(),
+        })
+        await redirectTabToWarningPage(tabId)
+        sendResponse({ ok: true, decision: 'warn' })
+
         const siteData = await getSiteData(targetUrl)
-
         if (isRisky(siteData.riskLevel)) {
-          const warnedKey = `${tabId}:${targetUrl}`
-          await chrome.storage.session.set({ [SESSION_KEY_WARNED]: warnedKey })
-
           await setPendingNavigation({
             tabId,
             targetUrl,
@@ -69,14 +77,10 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
             siteData,
             createdAt: Date.now(),
           })
-
-          await redirectTabToWarningPage(tabId)
-          sendResponse({ ok: true, decision: 'warn', riskLevel: siteData.riskLevel })
-          return
+        } else {
+          await chrome.storage.session.remove([SESSION_KEY_PENDING, SESSION_KEY_DETECTION])
+          await chrome.tabs.update(tabId, { url: targetUrl })
         }
-
-        await chrome.tabs.update(tabId, { url: targetUrl })
-        sendResponse({ ok: true, decision: 'allow', riskLevel: siteData.riskLevel })
       } catch (e) {
         console.warn('[LO-MA-BAN] CHECK_URL error', e)
         sendResponse({ ok: false })
@@ -96,7 +100,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         }
 
         await chrome.storage.session.set({ [SESSION_KEY_BYPASS]: `${data.tabId}:${data.targetUrl}` })
-        await chrome.storage.session.remove([SESSION_KEY_PENDING])
+        await chrome.storage.session.remove([SESSION_KEY_PENDING, SESSION_KEY_DETECTION])
         await chrome.tabs.update(data.tabId, { url: data.targetUrl })
 
         sendResponse({ ok: true })
@@ -107,9 +111,32 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     })()
     return true
   }
+
+  if (message?.type === 'LEAVE_SITE') {
+    ;(async () => {
+      try {
+        const { [SESSION_KEY_PENDING]: pending } = await chrome.storage.session.get(SESSION_KEY_PENDING)
+        const data = pending as PendingNavigation | undefined
+        if (!data || typeof data.tabId !== 'number') {
+          sendResponse({ ok: false })
+          return
+        }
+        const urlToOpen = data.sourceUrl && (data.sourceUrl.startsWith('http://') || data.sourceUrl.startsWith('https://'))
+          ? data.sourceUrl
+          : 'about:blank'
+        await chrome.storage.session.remove([SESSION_KEY_PENDING, SESSION_KEY_DETECTION])
+        await chrome.tabs.update(data.tabId, { url: urlToOpen })
+        sendResponse({ ok: true })
+      } catch (e) {
+        console.warn('[LO-MA-BAN] LEAVE_SITE error', e)
+        sendResponse({ ok: false })
+      }
+    })()
+    return true
+  }
 })
 
-/** 導向「開始前」就攔截，避免先進入風險網站再跳警告頁（網址列、書籤等） */
+/** Stay on same website: redirect to sourceUrl and show "Detecting…" popup there; when API returns, go to warning page or target. */
 chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
   if (details.frameId !== 0) return
   const url = details.url
@@ -122,21 +149,63 @@ chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
     const { [SESSION_KEY_BYPASS]: bypass } = await chrome.storage.session.get(SESSION_KEY_BYPASS)
     if (bypass === `${tabId}:${url}`) return
 
-    const siteData = await getSiteData(url)
-    if (!isRisky(siteData.riskLevel)) return
+    let sourceUrl: string | undefined
+    try {
+      const tab = await chrome.tabs.get(tabId)
+      const current = tab.url
+      if (current && current !== url && (current.startsWith('http://') || current.startsWith('https://')))
+        sourceUrl = current
+    } catch {
+      // ignore
+    }
+
+    const { [SESSION_KEY_PENDING]: existing } = await chrome.storage.session.get(SESSION_KEY_PENDING)
+    const existingPending = existing as PendingNavigation | undefined
+    if (existingPending?.tabId === tabId && existingPending.siteData === null && existingPending.sourceUrl === url) {
+      return
+    }
 
     const warnedKey = `${tabId}:${url}`
     const { [SESSION_KEY_WARNED]: lastWarned } = await chrome.storage.session.get(SESSION_KEY_WARNED)
     if (lastWarned === warnedKey) return
     await chrome.storage.session.set({ [SESSION_KEY_WARNED]: warnedKey })
-    await setPendingNavigation({
+
+    const pending: PendingNavigation = {
       tabId,
       targetUrl: url,
-      sourceUrl: undefined,
-      siteData,
+      sourceUrl,
+      siteData: null,
       createdAt: Date.now(),
-    })
-    await redirectTabToWarningPage(tabId)
+    }
+    await setPendingNavigation(pending)
+
+    const showPopupOnPage = sourceUrl && isHttpUrl(sourceUrl)
+
+    if (showPopupOnPage) {
+      await chrome.tabs.update(tabId, { url: sourceUrl })
+      const onTabComplete = (tid: number, info: { status?: string }) => {
+        if (tid !== tabId || info.status !== 'complete') return
+        chrome.tabs.onUpdated.removeListener(onTabComplete)
+        chrome.tabs.sendMessage(tabId, { type: 'SHOW_DETECTING', targetUrl: url }).catch(() => {})
+      }
+      chrome.tabs.onUpdated.addListener(onTabComplete)
+    } else {
+      await redirectTabToWarningPage(tabId)
+    }
+
+    const siteData = await getSiteData(url)
+
+    if (showPopupOnPage) {
+      chrome.tabs.sendMessage(tabId, { type: 'HIDE_DETECTING' }).catch(() => {})
+    }
+
+    if (isRisky(siteData.riskLevel)) {
+      await setPendingNavigation({ ...pending, siteData })
+      await redirectTabToWarningPage(tabId)
+    } else {
+      await chrome.storage.session.remove([SESSION_KEY_PENDING, SESSION_KEY_DETECTION])
+      await chrome.tabs.update(tabId, { url })
+    }
   } catch (e) {
     console.warn('[LO-MA-BAN] onBeforeNavigate detection error', e)
   }

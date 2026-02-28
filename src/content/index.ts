@@ -9,72 +9,83 @@ function isHttpUrl(url: string): boolean {
 
 function showLoadingOverlay(targetUrl: string) {
   if (loadingOverlay) return
-  const overlay = document.createElement('div')
-  overlay.setAttribute('data-scoutnet-loading', 'true')
-  overlay.style.position = 'fixed'
-  overlay.style.inset = '0'
-  overlay.style.zIndex = '2147483647'
-  overlay.style.background = 'rgba(0, 0, 0, 0.35)'
-  overlay.style.backdropFilter = 'blur(4px)'
-  overlay.style.display = 'flex'
-  overlay.style.alignItems = 'center'
-  overlay.style.justifyContent = 'center'
-  overlay.style.padding = '24px'
+  const popup = document.createElement('div')
+  popup.setAttribute('data-scoutnet-loading', 'true')
+  popup.style.position = 'fixed'
+  popup.style.top = '50%'
+  popup.style.left = '50%'
+  popup.style.transform = 'translate(-50%, -50%)'
+  popup.style.zIndex = '2147483647'
+  popup.style.display = 'flex'
+  popup.style.flexDirection = 'column'
+  popup.style.gap = '0'
+  popup.style.fontFamily = "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft JhengHei', sans-serif"
+  popup.style.pointerEvents = 'none'
 
   const card = document.createElement('div')
-  card.style.width = 'min(520px, calc(100vw - 48px))'
-  card.style.background = 'rgba(255, 255, 255, 0.96)'
-  card.style.borderRadius = '16px'
-  card.style.boxShadow = '0 20px 60px rgba(0,0,0,0.25)'
-  card.style.padding = '18px 18px 16px'
-  card.style.fontFamily = "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft JhengHei', sans-serif"
+  card.style.background = '#fff'
+  card.style.borderRadius = '12px'
+  card.style.boxShadow = '0 4px 20px rgba(0,0,0,0.15), 0 0 1px rgba(0,0,0,0.1)'
+  card.style.padding = '12px 16px'
   card.style.color = '#1f2937'
-
-  const row = document.createElement('div')
-  row.style.display = 'flex'
-  row.style.alignItems = 'center'
-  row.style.gap = '12px'
+  card.style.display = 'flex'
+  card.style.alignItems = 'center'
+  card.style.gap = '10px'
+  card.style.minWidth = '200px'
+  card.style.maxWidth = '320px'
 
   const spinner = document.createElement('div')
-  spinner.style.width = '18px'
-  spinner.style.height = '18px'
+  spinner.style.width = '16px'
+  spinner.style.height = '16px'
+  spinner.style.flexShrink = '0'
   spinner.style.borderRadius = '999px'
-  spinner.style.border = '3px solid rgba(0,0,0,0.12)'
+  spinner.style.border = '2px solid rgba(0,0,0,0.1)'
   spinner.style.borderTopColor = '#f59e0b'
-  spinner.style.animation = 'scoutnet-spin 0.8s linear infinite'
+  spinner.style.animation = 'scoutnet-spin 0.7s linear infinite'
 
-  const title = document.createElement('div')
-  title.style.fontWeight = '700'
-  title.style.fontSize = '14px'
-  title.textContent = 'ScoutNet is checking this link…'
+  const text = document.createElement('div')
+  text.style.fontSize = '13px'
+  text.style.fontWeight = '600'
+  text.style.color = '#334155'
+  text.textContent = 'Detecting…'
 
-  const subtitle = document.createElement('div')
-  subtitle.style.marginTop = '8px'
-  subtitle.style.fontSize = '12px'
-  subtitle.style.color = '#4b5563'
-  subtitle.style.wordBreak = 'break-all'
-  subtitle.textContent = targetUrl
+  const sub = document.createElement('div')
+  sub.style.fontSize = '11px'
+  sub.style.color = '#64748b'
+  sub.style.marginTop = '2px'
+  sub.textContent = 'Checking this link. Please wait.'
 
-  row.appendChild(spinner)
-  row.appendChild(title)
-  card.appendChild(row)
-  card.appendChild(subtitle)
-  overlay.appendChild(card)
+  const col = document.createElement('div')
+  col.appendChild(text)
+  col.appendChild(sub)
+
+  card.appendChild(spinner)
+  card.appendChild(col)
+  popup.appendChild(card)
 
   const style = document.createElement('style')
   style.textContent = `
 @keyframes scoutnet-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 `
-  overlay.appendChild(style)
+  popup.appendChild(style)
 
-  document.documentElement.appendChild(overlay)
-  loadingOverlay = overlay
+  document.documentElement.appendChild(popup)
+  loadingOverlay = popup
 }
 
 function hideLoadingOverlay() {
   loadingOverlay?.remove()
   loadingOverlay = null
 }
+
+chrome.runtime.onMessage.addListener((msg: { type?: string; targetUrl?: string }) => {
+  if (msg?.type === 'SHOW_DETECTING') {
+    showLoadingOverlay(msg.targetUrl ?? '')
+  }
+  if (msg?.type === 'HIDE_DETECTING') {
+    hideLoadingOverlay()
+  }
+})
 
 function shouldInterceptClick(e: MouseEvent): boolean {
   if (e.defaultPrevented) return false

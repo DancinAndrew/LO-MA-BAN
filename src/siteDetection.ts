@@ -1,19 +1,64 @@
 /**
- * Site detection module — ScoutNet web safety detection.
+ * Site detection — calls backend analyze API and maps response to SiteData + report.
  *
- * Integration points:
- *
- * 1. Frontend (popup / content script)
- *    - For Chrome extension: get current tab URL in popup or content script
- *    - Call getSiteData(currentUrl) or use chrome.runtime.sendMessage to get result from background
- *
- * 2. Background (service worker)
- *    - Implement detection logic in background (blocklist, HTTPS, lookalike URLs, etc.)
- *    - Use chrome.tabs.query for activeTab url, then return SiteData
- *
- * 3. Backend API
- *    - To use a backend: replace with fetch('/api/check-url', { body: url }) and map response to SiteData
+ * Integration:
+ * - getSiteData(url): POST url to backend, returns SiteData with report for ScoutNet.
+ * - Extension: call from background or popup, pass result to ScoutNet as siteData prop.
  */
+
+/** Report shape from analyze API (report_metadata, kid_friendly_summary, evidence_cards, etc.) */
+export type ReportData = {
+  report_metadata?: {
+    target_url?: string;
+    target_domain?: string;
+    risk?: { level?: string; score?: number; icon?: string; color?: string; label?: string };
+    confidence?: { level?: string; icon?: string; label?: string };
+  };
+  kid_friendly_summary?: {
+    title?: string;
+    simple_message?: string;
+    short_explanation?: string;
+    emoji_reaction?: string;
+    action_verb?: string;
+  };
+  evidence_cards?: Array<{
+    id?: string;
+    icon?: string;
+    title?: string;
+    content?: string;
+    severity?: string;
+  }>;
+  safety_tips?: Array<{
+    id?: string;
+    icon?: string;
+    tip?: string;
+    why?: string;
+    action_text?: string;
+  }>;
+  next_steps?: Array<{ action?: string; priority?: string; icon?: string; link?: string }>;
+  interactive_quiz?: {
+    enabled?: boolean;
+    question?: string;
+    hint?: string;
+    options?: Array<{
+      id?: string;
+      text?: string;
+      is_correct?: boolean;
+      explanation?: string;
+      feedback_icon?: string;
+    }>;
+    correct_answer_id?: string;
+    learning_point?: string;
+    difficulty?: string;
+  };
+  raw_analysis?: {
+    risk_level?: string;
+    risk_score?: number;
+    evidence_analysis?: string[];
+    user_warnings?: string[];
+    why_unsafe?: string;
+  };
+};
 
 export type SiteData = {
   currentUrl: string;
@@ -21,68 +66,114 @@ export type SiteData = {
   riskScore: string;
   riskLevel: 'low' | 'medium' | 'high';
   warnings: string[];
+  /** Full report from analyze API; ScoutNet uses this for UI content */
+  report?: ReportData | null;
 };
 
-/** Only these URLs/hosts return high risk (for testing ScoutNet warning); all others are low */
-const RISKY_TEST_HOSTS = ['paypa1.com', 'paypa1.example.com', 'evil-phishing.test']
+const ANALYZE_API_URL = 'http://localhost:8001/api/v1/analyze';
 
-function isTestRiskyUrl(url: string): boolean {
-  try {
-    const u = new URL(url)
-    const host = u.hostname.toLowerCase()
-    return RISKY_TEST_HOSTS.some((h) => host === h || host.endsWith('.' + h))
-  } catch {
-    return false
-  }
+function normalizeRiskLevel(value: string | undefined): SiteData['riskLevel'] {
+  if (!value) return 'low';
+  const v = String(value).toLowerCase().trim();
+  if (v === 'high') return 'high';
+  if (v === 'medium' || v === 'moderate') return 'medium';
+  if (v === 'low') return 'low';
+  if (v.includes('high') || v === 'danger') return 'high';
+  if (v.includes('medium') || v.includes('moderate')) return 'medium';
+  return 'low';
 }
 
-/**
- * Get detection result for the given URL.
- * For integration, replace with: Chrome extension (chrome.tabs.query → background or local check),
- * or fetch your backend API and return SiteData.
- */
-export async function getSiteData(url?: string): Promise<SiteData> {
-  const targetUrl = url ?? ''
-  const isRisky = targetUrl ? isTestRiskyUrl(targetUrl) : false
+type AnalyzeApiResponse = {
+  target_url?: string;
+  final_risk_level?: string;
+  risk_score?: number;
+  riskScore?: number;
+  report?: ReportData;
+  /** API may return report at top level (report_metadata, kid_friendly_summary, etc.) */
+  report_metadata?: ReportData['report_metadata'];
+  kid_friendly_summary?: ReportData['kid_friendly_summary'];
+  security_check?: {
+    risk_score?: number;
+    overall_risk?: string;
+    warnings?: string[];
+  };
+  [key: string]: unknown;
+};
 
-  if (isRisky) {
-    return {
-      currentUrl: targetUrl,
-      correctUrl: 'paypal.com',
-      riskScore: '2/10',
-      riskLevel: 'high',
-      warnings: [
-        'URL typo (paypa1.com is not paypal.com)',
-        'Suddenly asks for password',
-        'No HTTPS certificate',
-      ],
-    }
-  }
-
-  // Default: safe, don't block
+function fallbackSafeSiteData(url: string): SiteData {
   return {
-    currentUrl: targetUrl || 'https://example.com',
+    currentUrl: url || 'https://example.com',
     correctUrl: null,
-    riskScore: '10/10',
+    riskScore: '100/100',
     riskLevel: 'low',
     warnings: [],
+    report: null,
   };
 }
 
 /**
- * Synchronous default/cached result for React initial render.
- * If you already have data from extension or API, pass it to ScoutNet and skip this.
+ * Get detection result by calling the analyze API.
+ * Sends POST { url } to backend; response report is attached to SiteData.report.
  */
-export function getDefaultSiteData(): SiteData {
-  return {
-    currentUrl: 'paypa1.com',
-    correctUrl: 'paypal.com',
-    riskScore: '2/10',
-    riskLevel: 'high',
-    warnings: [
-      'URL typo (paypa1.com is not paypal.com)',
-      'Suddenly asks for password',
-      'No HTTPS certificate',
-    ],
-  };
+export async function getSiteData(url?: string): Promise<SiteData> {
+  const targetUrl = (url ?? '').trim();
+  if (!targetUrl || (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://'))) {
+    return fallbackSafeSiteData(targetUrl);
+  }
+
+  try {
+    console.log('[ScoutNet] analyze request:', { url: targetUrl });
+    const res = await fetch(ANALYZE_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: targetUrl }),
+    });
+
+    if (!res.ok) {
+      console.warn('[ScoutNet] analyze API error:', res.status, await res.text());
+      return fallbackSafeSiteData(targetUrl);
+    }
+
+    const data = (await res.json()) as AnalyzeApiResponse;
+    console.log('[ScoutNet] API response:', data);
+    // API may return report as { report: {...} } or as top-level { report_metadata, kid_friendly_summary, ... }
+    const report: ReportData | null =
+      data.report ?? (data.report_metadata ? (data as unknown as ReportData) : null);
+    const riskLevel = normalizeRiskLevel(data.final_risk_level ?? report?.report_metadata?.risk?.level ?? report?.raw_analysis?.risk_level);
+    // Prefer API risk score: report.report_metadata.risk.score, then security_check / top-level, then fallback
+    const riskScoreNum =
+      report?.report_metadata?.risk?.score ??
+      data.security_check?.risk_score ??
+      data.risk_score ??
+      data.riskScore ??
+      report?.raw_analysis?.risk_score ??
+      (riskLevel === 'low' ? 100 : riskLevel === 'high' ? 20 : 50);
+    const riskScore = `${riskScoreNum}/100`;
+    const warnings = data.security_check?.warnings ?? report?.raw_analysis?.evidence_analysis ?? report?.raw_analysis?.user_warnings ?? (report?.evidence_cards?.map((c) => c.title ?? c.content).filter(Boolean) as string[]) ?? [];
+
+    const siteData: SiteData = {
+      currentUrl: data.target_url ?? report?.report_metadata?.target_url ?? targetUrl,
+      correctUrl: null,
+      riskScore,
+      riskLevel,
+      warnings: Array.isArray(warnings) ? warnings : [],
+      report: report ?? null,
+    };
+    console.log('[ScoutNet] mapped SiteData:', { currentUrl: siteData.currentUrl, riskScore: siteData.riskScore, riskLevel: siteData.riskLevel, warningsCount: siteData.warnings.length, hasReport: !!siteData.report });
+    return siteData;
+  } catch (e) {
+    const err = e instanceof Error ? e : new Error(String(e));
+    console.warn('[ScoutNet] analyze request failed:', err.message, { url: ANALYZE_API_URL, cause: err.cause });
+    return fallbackSafeSiteData(targetUrl);
+  }
 }
+
+/** Empty site data when no API result yet. No default/fake content. */
+export const EMPTY_SITE_DATA: SiteData = {
+  currentUrl: '',
+  correctUrl: null,
+  riskScore: '0/100',
+  riskLevel: 'low',
+  warnings: [],
+  report: null,
+};
