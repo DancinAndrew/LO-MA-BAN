@@ -28,13 +28,11 @@ uv sync
 cp .env.example .env
 # 編輯 .env 填入各平台 API Key
 
-# 3. 啟動開發伺服器 (hot-reload)
+# 3. 啟動開發伺服器 (hot-reload，HOST/PORT 讀自 .env 或 config 預設)
 uv run python main.py
-# 或
-uv run uvicorn main:app --reload --port 8000
 ```
 
-Server 啟動後：
+Server 啟動後（預設 port 為 `.env` 的 `PORT`，未設則 8000）：
 - API: `http://localhost:8000`
 - Swagger UI: `http://localhost:8000/docs`
 - ReDoc: `http://localhost:8000/redoc`
@@ -103,7 +101,7 @@ Health check，用於部署平台存活探測。
 
 主要端點。接收一個 URL，依序執行：
 1. **Security Check** — 並行查詢 VirusTotal、URLhaus、PhishTank、Google Safe Browsing
-2. **LLM Analysis** — 將安全檢查結果送給 Featherless AI 做深度分析（可跳過）
+2. **LLM Analysis** — 當風險為 critical/high/medium 時，將安全檢查結果送給 Featherless AI 做深度分析
 3. **Report Generation** — 產生兒童友善的教學報告（含互動選擇題）
 
 #### Request
@@ -112,19 +110,15 @@ Health check，用於部署平台存活探測。
 Content-Type: application/json
 ```
 
-| 欄位 | 型別 | 必填 | 預設 | 說明 |
-|------|------|:----:|------|------|
-| `url` | string (URL) | **是** | — | 要分析的目標網址，須含 scheme (`https://`) |
-| `skip_llm` | boolean | 否 | `false` | 設為 `true` 時跳過 LLM 分析，只做安全檢查 + 報告 |
-| `force_llm` | boolean | 否 | `false` | 即使風險等級低也強制呼叫 LLM |
+| 欄位 | 型別 | 必填 | 說明 |
+|------|------|:----:|------|
+| `url` | string (URL) | **是** | 要分析的目標網址，須含 scheme (`https://`) |
 
 **Request 範例：**
 
 ```json
 {
-  "url": "https://example.com",
-  "skip_llm": false,
-  "force_llm": false
+  "url": "https://example.com"
 }
 ```
 
@@ -134,7 +128,7 @@ Content-Type: application/json
 |------|------|------|
 | `target_url` | string | 分析的目標 URL |
 | `security_check` | object | 安全檢查彙總結果 |
-| `llm_analysis` | object \| null | LLM 深度分析結果（`skip_llm=true` 時為 `null`） |
+| `llm_analysis` | object \| null | LLM 深度分析結果（僅當 overall_risk 為 critical/high/medium 時有值） |
 | `report` | object | 兒童友善教學報告 |
 | `final_risk_level` | string | 最終風險等級 |
 | `timestamp` | string | ISO 8601 UTC 時間戳 |

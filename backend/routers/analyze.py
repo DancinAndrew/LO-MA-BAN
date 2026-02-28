@@ -30,15 +30,11 @@ async def analyze_url(body: AnalyzeRequest) -> AnalyzeResponse:
 
     overall_risk = security_results.get("overall_risk", "inconclusive")
 
-    # Step 2 — LLM deep analysis (optional)
+    # Step 2 — LLM deep analysis when risk is notable
     llm_analysis: dict | None = None
-    should_call_llm = (
-        body.force_llm
-        or not body.skip_llm
-        or overall_risk in ("critical", "high", "medium")
-    )
+    should_call_llm = overall_risk in ("critical", "high", "medium")
 
-    if should_call_llm and not body.skip_llm:
+    if should_call_llm:
         llm_svc = LLMAnalyzerService()
         try:
             llm_analysis = await llm_svc.analyze(target_url, security_results)
