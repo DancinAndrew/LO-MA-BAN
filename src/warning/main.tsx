@@ -123,7 +123,16 @@ function WarningApp() {
 
   if (detecting) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent' }}>
+      <div
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'rgba(0, 0, 0, 0.35)',
+          backdropFilter: 'blur(4px)',
+        }}
+      >
         <div
           style={{
             background: '#fff',

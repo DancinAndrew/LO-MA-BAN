@@ -34,12 +34,21 @@ const ScoutNet: React.FC<ScoutNetProps> = ({ siteData: siteDataProp, onLeaveSite
   const siteData: SiteData = siteDataProp ?? EMPTY_SITE_DATA;
   const report: ReportData | null | undefined = siteData.report;
 
+  const scrollToTop = () => {
+    threadRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const scrollToBottom = () => {
-    threadRef.current?.scrollTo({ top: threadRef.current.scrollHeight, behavior: 'smooth' });
+    const el = threadRef.current;
+    if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
   };
 
   useEffect(() => {
-    scrollToBottom();
+    if (conversation.length === 0) {
+      scrollToTop();
+    } else {
+      scrollToBottom();
+    }
   }, [conversation, currentStep]);
 
   const resetFlow = () => {
