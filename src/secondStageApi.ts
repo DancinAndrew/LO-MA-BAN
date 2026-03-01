@@ -4,7 +4,7 @@
  */
 
 const env = typeof import.meta !== 'undefined' ? (import.meta as { env?: Record<string, string> }).env : undefined
-const API_BASE_URL = (env?.VITE_SCOUTNET_API_URL || 'http://localhost:8001').replace(/\/$/, '')
+const API_BASE_URL = (env?.VITE_SCOUTNET_API_URL || 'http://localhost:8000').replace(/\/$/, '')
 export const PERSUADE_API_URL = `${API_BASE_URL}/api/v1/scan/persuade`
 
 export type PersuasionResult = {

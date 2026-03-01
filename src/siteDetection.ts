@@ -70,7 +70,7 @@ export type SiteData = {
   report?: ReportData | null;
 };
 
-const ANALYZE_API_URL = 'http://localhost:8001/api/v1/scan';
+const ANALYZE_API_URL = 'http://localhost:8000/api/v1/scan';
 
 function normalizeRiskLevel(value: string | undefined): SiteData['riskLevel'] {
   if (!value) return 'low';
