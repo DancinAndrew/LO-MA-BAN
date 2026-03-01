@@ -17,6 +17,7 @@
 - [Installation Guide](#installation-guide)
 - [Development Roadmap](#development-roadmap)
 - [Open Questions](#open-questions)
+- [Installation Guide](#installation-guide)
 - [Team](#team)
 - [License](#license)
 
@@ -200,3 +201,36 @@ https://www.canva.com/design/DAHCnrTrteg/raKKjzz7QhRYQgeb3TrtMA/edit?utm_content
 | **Kelly** | Multimedia Designer | • Presentation design and creation<br>• Video editing and post-production |
 | **Andrew** | Backend Developer | • Server-side logic development<br>• System architecture planning |
 | **Shawn** | Backend Developer<br>+ Chrome Extension | • Backend feature development<br>• Chrome extension development|
+
+---
+
+## Installation Guide
+
+For complete setup instructions, please refer to the following documents:
+
+- **Frontend & Development Setup**: [dev-doc/DEVELOPMENT.md](dev-doc/DEVELOPMENT.md)
+- **Backend Setup**: [backend/README.md](backend/README.md)
+
+### Quick Start
+
+**1. Backend Setup**
+```bash
+cd backend
+# Using uv (Recommended)
+uv sync
+cp .env.example .env  # Configure your API keys
+uv run python main.py
+```
+
+**2. Frontend Setup**
+```bash
+# In a new terminal
+pnpm install
+pnpm dev
+```
+
+**3. Load Extension in Chrome**
+1. Open `chrome://extensions/`.
+2. Enable **Developer mode** (top right).
+3. Click **Load unpacked**.
+4. Select the `dist` folder in the project root.
