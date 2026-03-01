@@ -23,7 +23,7 @@ export default defineManifest({
   host_permissions: [
     'http://localhost:8000/*',
     'http://127.0.0.1:8000/*',
-    'https://lo-ma-ban-production.up.railway.app/*',
+    'https://lo-ma-ban-production-9fb5.up.railway.app/*',
   ],
   icons: {
     '16': 'icons/icon-16.png',

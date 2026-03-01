@@ -70,7 +70,9 @@ export type SiteData = {
   report?: ReportData | null;
 };
 
-const ANALYZE_API_URL = 'http://localhost:8000/api/v1/scan';
+const env = import.meta.env as { VITE_SCOUTNET_API_URL?: string };
+const API_BASE = (env?.VITE_SCOUTNET_API_URL || 'http://localhost:8000').replace(/\/$/, '');
+const ANALYZE_API_URL = `${API_BASE}/api/v1/scan`;
 
 function normalizeRiskLevel(value: string | undefined): SiteData['riskLevel'] {
   if (!value) return 'low';
