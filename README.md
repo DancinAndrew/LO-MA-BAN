@@ -1,4 +1,4 @@
-# ScoutNet - AI-Powered Online Safety Guide for Children
+# 🦊 ScoutNet - AI-Powered Online Safety Guide for Children
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Chrome Web Store](https://img.shields.io/badge/Chrome-Extension-blue.svg)](https://chrome.google.com/webstore)
