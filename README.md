@@ -229,7 +229,13 @@ pnpm install
 pnpm dev
 ```
 
-**3. Load Extension in Chrome**
+**3. Build**
+```bash
+pnpm build
+```
+Output is written to `dist/`.
+
+**4. Load Extension in Chrome**
 1. Open `chrome://extensions/`.
 2. Enable **Developer mode** (top right).
 3. Click **Load unpacked**.
