@@ -28,8 +28,8 @@ python main.py
 ```
 
 啟動後：
-- Swagger UI：http://localhost:8001/docs
-- ReDoc：http://localhost:8001/redoc
+- Swagger UI：http://localhost:8000/docs
+- ReDoc：http://localhost:8000/redoc
 
 ---
 
@@ -42,14 +42,14 @@ Extension 端**不持有任何 API Key**，所有安全檢查和 AI 分析都由
 ```
 Chrome Extension (popup / content script / background)
   → fetch() / chrome.runtime.sendMessage()
-    → POST http://localhost:8001/api/v1/scan
+    → POST http://localhost:8000/api/v1/scan
     ← JSON response（含 report 給 UI 渲染）
 ```
 
 ### 第一階段：掃描網址
 
 ```typescript
-const BASE_URL = "http://localhost:8001";
+const BASE_URL = "http://localhost:8000";
 
 async function scanUrl(url: string) {
   const resp = await fetch(`${BASE_URL}/api/v1/scan`, {
@@ -106,7 +106,7 @@ stage2.second_stage_result.encouraging_message;            // 鼓勵訊息
 
 ```typescript
 // background/index.ts
-const API_BASE = "http://localhost:8001";
+const API_BASE = "http://localhost:8000";
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.type === "SCAN_URL") {
@@ -500,7 +500,7 @@ backend/
 | `CONTENT_MAX_CHARS` | `8000` | 內容分析截斷字數上限 |
 | `API_TIMEOUT` | `30` | 外部 API 呼叫逾時秒數 |
 | `HOST` | `0.0.0.0` | 監聽地址 |
-| `PORT` | `8001` | 監聽 port |
+| `PORT` | `8000` | 監聽 port |
 | `APP_TITLE` | `ScoutNet API` | Swagger 標題 |
 | `APP_VERSION` | `2.0.0` | API 版本 |
 | `USER_AGENT` | `ScamAnalyzer/2.0` | 外部 API 呼叫用 User-Agent |
@@ -530,8 +530,8 @@ backend/
 ### 其他平台（Render / Fly.io / 自建主機）
 
 - **Render**：選 Python Web Service，Root Directory 設 `backend`，Build Command：`pip install -r requirements.txt`，Start Command：`uvicorn main:app --host 0.0.0.0 --port $PORT`。
-- **Fly.io**：可加一個 `Dockerfile` 用 `python:3.12-slim` + `pip install -r requirements.txt` + `CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001"]`，並在 `fly.toml` 設定 `internal_port = 8001` 與 env。
-- **自建**：`pip install -r requirements.txt` 後執行 `uvicorn main:app --host 0.0.0.0 --port 8001`，或用 Gunicorn：`gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8001`。
+- **Fly.io**：可加一個 `Dockerfile` 用 `python:3.12-slim` + `pip install -r requirements.txt` + `CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]`，並在 `fly.toml` 設定 `internal_port = 8000` 與 env。
+- **自建**：`pip install -r requirements.txt` 後執行 `uvicorn main:app --host 0.0.0.0 --port 8000`，或用 Gunicorn：`gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000`。
 
 ---
 

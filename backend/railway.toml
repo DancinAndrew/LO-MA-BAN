@@ -1,3 +1,3 @@
 # Railway deploy config — ensure app listens on $PORT
 [deploy]
-startCommand = "uvicorn main:app --host 0.0.0.0 --port $PORT"
+startCommand = "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"

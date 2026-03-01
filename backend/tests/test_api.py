@@ -13,7 +13,7 @@ from typing import Dict, Optional
 
 import httpx
 
-BASE_URL = "http://127.0.0.1:8001"
+BASE_URL = "http://127.0.0.1:8000"
 OUTPUT_DIR = Path(__file__).parent / "output"
 
 SCENARIOS = {

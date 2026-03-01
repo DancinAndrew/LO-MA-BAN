@@ -88,7 +88,7 @@ if __name__ == "__main__":
     import uvicorn
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--port", type=int, default=None, help="Port to bind (default: from PORT env or 8001)")
+    parser.add_argument("--port", type=int, default=None, help="Port to bind (default: from PORT env or 8000)")
     parser.add_argument("--host", type=str, default=None, help="Host to bind (default: from HOST env or 0.0.0.0)")
     args = parser.parse_args()
     _s = get_settings()

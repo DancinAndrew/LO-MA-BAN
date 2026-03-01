@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Preview image API: POST /api/preview-url — uses Playwright to screenshot the target URL and return base64 image.
-Run: cd backend && pip install -r requirements-preview.txt && python -m playwright install chromium && uvicorn preview_server:app --host 0.0.0.0 --port 8001
+Run: cd backend && pip install -r requirements-preview.txt && python -m playwright install chromium && uvicorn preview_server:app --host 0.0.0.0 --port 8000
 """
 import base64
 import logging
