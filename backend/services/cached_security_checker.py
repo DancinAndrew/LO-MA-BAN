@@ -2,12 +2,15 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from copy import deepcopy
 from typing import Any
 
 from cachetools import TTLCache
 
 from services.security_checker import SecurityCheckerService
+
+logger = logging.getLogger("services.security_checker")
 
 
 class CachedSecurityChecker:
@@ -43,16 +46,20 @@ class CachedSecurityChecker:
 
     async def check_all(self, target_url: str) -> dict[str, Any]:
         key = target_url
+        logger.info("Security check started: %s", target_url)
 
         cached = await self._read_cache(key)
         if cached is not None:
+            logger.info("Security check cache hit: %s", target_url)
             cached["cached"] = True
             return cached
 
+        logger.info("Security check cache miss: %s", target_url)
         inflight = await self._get_inflight_lock(key)
         async with inflight:
             cached = await self._read_cache(key)
             if cached is not None:
+                logger.info("Security check cache hit (after wait): %s", target_url)
                 cached["cached"] = True
                 return cached
 
