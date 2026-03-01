@@ -64,7 +64,7 @@ class QuizGenerator:
                 oid = ids[i] if i < 4 else str(i + 1)
                 otxt = str(opt)
             is_correct = str(oid) == str(correct) or str(otxt) == str(correct)
-            explanation = "再想想看～"
+            explanation = "Think again~"
             if isinstance(explanations, dict):
                 explanation = explanations.get(str(oid), explanations.get(str(otxt), explanation))
             fmt.append({
@@ -104,48 +104,48 @@ class QuizGenerator:
     def _content_risk_quiz() -> dict[str, Any]:
         return {
             "enabled": True,
-            "question": "🤔 如果你不小心點進了一個「不適合小朋友看」的網站，第一步應該做什麼？",
-            "hint": "記得：不要慌張，找大人幫忙！", "type": "single_choice",
+            "question": "🤔 If you accidentally open a website that's 'not for kids', what should you do first?",
+            "hint": "Remember: don't panic — ask an adult for help!", "type": "single_choice",
             "options": [
-                {"id": "A", "text": "繼續看下去，反正都點進來了", "is_correct": False, "explanation": "這樣會看到更多不適當的內容，要趕快關掉喔！", "feedback_icon": "❌"},
-                {"id": "B", "text": "馬上關掉網頁，然後告訴爸媽或老師", "is_correct": True, "explanation": "答對啦！關掉並告訴大人是最好的做法！", "feedback_icon": "✅"},
-                {"id": "C", "text": "偷偷存起來，不要讓別人知道", "is_correct": False, "explanation": "遇到這種情況要勇敢求助，大人會幫忙你的！", "feedback_icon": "❌"},
-                {"id": "D", "text": "分享給同學一起看", "is_correct": False, "explanation": "不適當的內容不應該分享，要保護自己也保護同學喔！", "feedback_icon": "❌"},
+                {"id": "A", "text": "Keep browsing since you already opened it", "is_correct": False, "explanation": "That would expose you to more inappropriate content — close it right away!", "feedback_icon": "❌"},
+                {"id": "B", "text": "Close the page immediately and tell a parent or teacher", "is_correct": True, "explanation": "Correct! Closing it and telling an adult is the best thing to do!", "feedback_icon": "✅"},
+                {"id": "C", "text": "Save it secretly and don't tell anyone", "is_correct": False, "explanation": "Be brave and ask for help — adults are there to support you!", "feedback_icon": "❌"},
+                {"id": "D", "text": "Share it with your classmates", "is_correct": False, "explanation": "Inappropriate content should not be shared — protect yourself and your friends!", "feedback_icon": "❌"},
             ],
             "correct_answer_id": "B",
-            "learning_point": "遇到不適當的網站：關掉 → 告訴大人 → 不要害怕求助！",
+            "learning_point": "When you find an inappropriate site: close it → tell an adult → don't be afraid to ask for help!",
             "difficulty": "easy",
         }
 
     def _brand_quiz(self) -> dict[str, Any]:
         return {
             "enabled": True,
-            "question": f"🔍 你覺得 `{self.target_domain}` 這個網址，哪裡「怪怪的」？",
-            "hint": "仔細看每個字母喔，騙子喜歡用數字代替字母！", "type": "single_choice",
+            "question": f"🔍 What looks 'off' about the URL `{self.target_domain}`?",
+            "hint": "Look at every letter carefully — scammers love to swap letters with numbers!", "type": "single_choice",
             "options": [
-                {"id": "A", "text": "它跟真正的品牌網址長得好像，但有些地方不太一樣", "is_correct": False, "explanation": "只注意到「像」還不夠，要學會「逐字檢查每個字母」喔！", "feedback_icon": "❌"},
-                {"id": "B", "text": f"它的「尾巴」是 .{self.target_tld}，但正規網站通常是 .com", "is_correct": False, "explanation": f".{self.target_tld} 確實可疑，但騙子也會用 .com，不能只看尾巴", "feedback_icon": "❌"},
-                {"id": "C", "text": "它用數字或符號代替字母（例如用 1 代替 l，0 代替 o）", "is_correct": True, "explanation": "答對啦！騙人的網站常用數字代替字母來混淆你，要逐字檢查！", "feedback_icon": "✅"},
-                {"id": "D", "text": "以上都是！🎉", "is_correct": False, "explanation": "D 看起來很誘人，但這題要選「最關鍵」的那個喔！", "feedback_icon": "❌"},
+                {"id": "A", "text": "It looks similar to the real brand URL, but something is different", "is_correct": False, "explanation": "Noticing the similarity isn't enough — you need to check every single letter!", "feedback_icon": "❌"},
+                {"id": "B", "text": f"Its ending is .{self.target_tld}, but legitimate sites usually use .com", "is_correct": False, "explanation": f".{self.target_tld} is indeed suspicious, but scammers can also use .com — don't rely on the ending alone", "feedback_icon": "❌"},
+                {"id": "C", "text": "It uses numbers or symbols to replace letters (e.g., 1 for l, 0 for o)", "is_correct": True, "explanation": "Correct! Scam sites often swap numbers for letters to trick you — always check letter by letter!", "feedback_icon": "✅"},
+                {"id": "D", "text": "All of the above! 🎉", "is_correct": False, "explanation": "D is tempting, but pick the single most critical clue!", "feedback_icon": "❌"},
             ],
             "correct_answer_id": "C",
-            "learning_point": "看到很像知名品牌的網址，一定要「逐字檢查」＋「確認官方網址」！",
+            "learning_point": "When a URL looks like a famous brand, always check letter by letter and verify the official URL!",
             "difficulty": "medium",
         }
 
     def _tld_quiz(self) -> dict[str, Any]:
         return {
             "enabled": True,
-            "question": f"🌐 網址的「尾巴」`.{self.target_tld}`，代表什麼意思呢？",
-            "hint": "想想看，你常看到的網站尾巴是什麼？", "type": "single_choice",
+            "question": f"🌐 What does the domain ending `.{self.target_tld}` tell us?",
+            "hint": "Think about it — what endings do you usually see on websites?", "type": "single_choice",
             "options": [
-                {"id": "A", "text": "這是一個很常見、很安全的尾巴，可以放心點", "is_correct": False, "explanation": f".{self.target_tld} 雖然合法，但因為註冊便宜，常被騙子利用，要小心！", "feedback_icon": "❌"},
-                {"id": "B", "text": "這是一個比較少見的尾巴，要特別小心", "is_correct": True, "explanation": f"答對啦！.com、.tw 是常見的尾巴，但像 .{self.target_tld} 這種比較少見的，要特別小心！", "feedback_icon": "✅"},
-                {"id": "C", "text": "尾巴不重要，只要網站有🔒小鎖頭就安全", "is_correct": False, "explanation": "🔒小鎖頭只代表「連線有加密」，不代表「網站內容是真的」", "feedback_icon": "❌"},
-                {"id": "D", "text": "所有尾巴都一樣，不用在意", "is_correct": False, "explanation": "不同的尾巴代表不同的註冊規則，學會分辨很重要喔！", "feedback_icon": "❌"},
+                {"id": "A", "text": "It's a very common and safe ending — no worries", "is_correct": False, "explanation": f".{self.target_tld} is technically valid, but it's cheap to register and often used by scammers — be careful!", "feedback_icon": "❌"},
+                {"id": "B", "text": "It's an uncommon ending — be extra cautious", "is_correct": True, "explanation": f"Correct! .com and .org are common endings, but uncommon ones like .{self.target_tld} deserve extra caution!", "feedback_icon": "✅"},
+                {"id": "C", "text": "The ending doesn't matter as long as the site has a 🔒 lock icon", "is_correct": False, "explanation": "The 🔒 lock only means the connection is encrypted — it doesn't mean the site is trustworthy", "feedback_icon": "❌"},
+                {"id": "D", "text": "All endings are the same — it doesn't matter", "is_correct": False, "explanation": "Different endings have different registration rules — learning to tell them apart is important!", "feedback_icon": "❌"},
             ],
             "correct_answer_id": "B",
-            "learning_point": f"不確定時，可以搜尋「.{self.target_tld} 域名 安全嗎」，或直接輸入「品牌名 + .com」訪問官方網站！",
+            "learning_point": f"When unsure, search 'is .{self.target_tld} safe?' or go directly to the official site by typing 'brand name + .com'!",
             "difficulty": "easy",
         }
 
@@ -153,15 +153,15 @@ class QuizGenerator:
     def _generic_quiz() -> dict[str, Any]:
         return {
             "enabled": True,
-            "question": "🤔 如果你收到一個陌生連結，第一步應該做什麼？",
-            "hint": "記住口訣：停、看、聽！", "type": "single_choice",
+            "question": "🤔 If you receive an unfamiliar link, what should you do first?",
+            "hint": "Remember the motto: Stop, Look, Think!", "type": "single_choice",
             "options": [
-                {"id": "A", "text": "馬上點進去看看是什麼", "is_correct": False, "explanation": "直接點進去可能會中病毒、被騙個資，千萬不要！", "feedback_icon": "❌"},
-                {"id": "B", "text": "先複製網址，用安全工具檢查一下", "is_correct": True, "explanation": "答對啦！先用安全工具檢查，是最保險的做法！", "feedback_icon": "✅"},
-                {"id": "C", "text": "直接刪除，不管它", "is_correct": False, "explanation": "刪除是安全的，但如果這是重要通知，可能會錯過重要資訊", "feedback_icon": "❌"},
-                {"id": "D", "text": "轉發給朋友一起看", "is_correct": False, "explanation": "轉發可能讓更多人遇到危險，要先確認安全再分享", "feedback_icon": "❌"},
+                {"id": "A", "text": "Click it right away to see what it is", "is_correct": False, "explanation": "Clicking could expose you to viruses or steal your info — never do this!", "feedback_icon": "❌"},
+                {"id": "B", "text": "Copy the URL and check it with a safety tool first", "is_correct": True, "explanation": "Correct! Checking with a safety tool first is the safest approach!", "feedback_icon": "✅"},
+                {"id": "C", "text": "Delete it and ignore it completely", "is_correct": False, "explanation": "Deleting is safe, but if it's an important notice you might miss something", "feedback_icon": "❌"},
+                {"id": "D", "text": "Forward it to your friends", "is_correct": False, "explanation": "Forwarding could put more people at risk — verify safety before sharing", "feedback_icon": "❌"},
             ],
             "correct_answer_id": "B",
-            "learning_point": "安全口訣：「陌生連結不亂點，先查再按最安全」🔐",
+            "learning_point": "Safety motto: 'Don't click unknown links — check first, click later!' 🔐",
             "difficulty": "easy",
         }

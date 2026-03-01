@@ -104,10 +104,10 @@ class ScanOrchestrator:
                 "risk_level": "low",
                 "confidence": "medium",
                 "risk_score": 20,
-                "threat_summary": "未偵測到釣魚或明顯不良內容",
-                "why_unsafe": "此網址在資安與內容檢查中未發現明顯風險，但仍建議上網時保持警覺喔！",
+                "threat_summary": "No phishing or obviously harmful content detected",
+                "why_unsafe": "No obvious risks were found during security and content checks, but always stay alert when browsing!",
                 "evidence_analysis": [],
-                "recommendations": ["保持警覺", "不隨便點陌生連結", "有疑問問爸媽或老師"],
+                "recommendations": ["Stay alert", "Don't click unfamiliar links", "Ask a parent or teacher if unsure"],
             }
         if not analysis_data:
             analysis_data = security_results

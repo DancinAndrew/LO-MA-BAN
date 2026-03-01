@@ -32,33 +32,33 @@ def simplify_text(text: str, max_length: int = 150) -> str:
 
 class ReportGeneratorService:
     RISK_UI: dict[str, dict[str, str]] = {
-        "critical": {"icon": "🔴", "color": "#ef4444", "label": "超級危險"},
-        "high":     {"icon": "🔴", "color": "#f97316", "label": "很危險"},
-        "medium":   {"icon": "🟠", "color": "#f59e0b", "label": "有點可疑"},
-        "low":      {"icon": "🟡", "color": "#eab308", "label": "相對安全"},
-        "inconclusive": {"icon": "⚪", "color": "#9ca3af", "label": "無法判斷"},
+        "critical": {"icon": "🔴", "color": "#ef4444", "label": "Extremely Dangerous"},
+        "high":     {"icon": "🔴", "color": "#f97316", "label": "Very Dangerous"},
+        "medium":   {"icon": "🟠", "color": "#f59e0b", "label": "Somewhat Suspicious"},
+        "low":      {"icon": "🟡", "color": "#eab308", "label": "Relatively Safe"},
+        "inconclusive": {"icon": "⚪", "color": "#9ca3af", "label": "Inconclusive"},
     }
 
     CONFIDENCE_UI: dict[str, dict[str, str]] = {
-        "high":   {"icon": "✅", "label": "很確定"},
-        "medium": {"icon": "⚠️", "label": "大概"},
-        "low":    {"icon": "❓", "label": "不太確定"},
+        "high":   {"icon": "✅", "label": "Very confident"},
+        "medium": {"icon": "⚠️", "label": "Somewhat confident"},
+        "low":    {"icon": "❓", "label": "Not very confident"},
     }
 
     KID_RISK_TEXT: dict[str, str] = {
-        "critical":     "🚨 這個網站很可能是騙人的，千萬不要點進去！",
-        "high":         "⚠️ 這個網站看起來怪怪的，建議不要訪問",
-        "medium":       "🤔 這個網站有點可疑，要多小心一點",
-        "low":          "🙂 這個網站看起來還好，但上網還是要保持警覺喔",
-        "inconclusive": "❓ 資訊不足，無法判斷，建議用其他工具再檢查",
+        "critical":     "🚨 This website is very likely a scam — do NOT click!",
+        "high":         "⚠️ This website looks suspicious — we recommend not visiting it",
+        "medium":       "🤔 This website is a bit suspicious — be extra careful",
+        "low":          "🙂 This website seems okay, but always stay alert online",
+        "inconclusive": "❓ Not enough info to decide — try checking with another tool",
     }
 
     KID_CONTENT_RISK_TEXT: dict[str, str] = {
-        "critical":     "🚨 這個網站有大人才能看的內容，小朋友不要進去喔！",
-        "high":         "⚠️ 這個網站有不適合小朋友的內容，建議不要訪問",
-        "medium":       "🤔 這個網站可能有不恰當的內容，要多小心",
-        "low":          "🙂 看起來還好，但上網還是要保持警覺喔",
-        "inconclusive": "❓ 無法確定內容是否適合，建議不要點擊",
+        "critical":     "🚨 This website has adults-only content — kids should NOT visit!",
+        "high":         "⚠️ This website has content not suitable for kids — we recommend not visiting",
+        "medium":       "🤔 This website may have inappropriate content — be careful",
+        "low":          "🙂 Seems okay, but always stay alert online",
+        "inconclusive": "❓ Can't tell if the content is appropriate — we recommend not clicking",
     }
 
     def __init__(
@@ -117,11 +117,11 @@ class ReportGeneratorService:
         if not explanation or len(explanation) < 50:
             explanation = self._default_kid_explanation()
         return {
-            "title": f"{risk_ui['icon']} {risk_ui['label']}！",
+            "title": f"{risk_ui['icon']} {risk_ui['label']}!",
             "simple_message": risk_texts.get(risk_level, ""),
             "short_explanation": simplify_text(explanation, 200),
             "emoji_reaction": risk_ui["icon"],
-            "action_verb": "不要點" if risk_level in ("critical", "high") else "小心點",
+            "action_verb": "Don't click" if risk_level in ("critical", "high") else "Be careful",
         }
 
     def _default_kid_explanation(self) -> str:
@@ -129,20 +129,20 @@ class ReportGeneratorService:
         content_type = self.analysis.get("content_risk_type", "")
         if self.risk_source == "content" and risk_level in ("critical", "high"):
             return (
-                f"這個網站可能有不適合小朋友看的內容（像是{content_type or '大人才能看的東西'}）：\n"
-                "1. 網路上有些內容是設計給大人看的\n"
-                "2. 小朋友看到可能會有不好的影響\n"
-                "3. 如果不小心點進去，要馬上關掉，並告訴爸媽或老師喔！"
+                f"This website may contain content not suitable for kids (such as {content_type or 'adults-only material'}):\n"
+                "1. Some online content is designed only for adults\n"
+                "2. Seeing it could have a negative effect on kids\n"
+                "3. If you accidentally open it, close it right away and tell a parent or teacher!"
             )
         if risk_level in ("critical", "high"):
             return (
-                f"這個網址有幾個「紅燈信號」🚦：\n"
-                f"1. 網址的尾巴 (.{self.target_tld}) 很少見，很多騙人的網站喜歡用\n"
-                "2. 域名長長又複雜，正規網站通常簡單好記\n"
-                "3. 看起來很像知名品牌，但其實不是真的\n"
-                "所以我們要特別小心，不要隨便點進去或輸入個人資料喔！"
+                f"This URL has several red flags 🚦:\n"
+                f"1. The domain ending (.{self.target_tld}) is uncommon — scam sites love to use these\n"
+                "2. The domain name is long and complex — legitimate sites are usually short and easy to remember\n"
+                "3. It looks similar to a well-known brand, but it's not the real one\n"
+                "So be extra careful — don't click or enter any personal information!"
             )
-        return "這個網址看起來沒有明顯危險，但上網時還是要保持警覺，不要隨便輸入個人資料喔！"
+        return "This URL doesn't show obvious dangers, but always stay alert and don't enter personal information on unfamiliar sites!"
 
     def _generate_evidence_cards(self) -> list[dict[str, Any]]:
         evidence = self.analysis.get("evidence_summary") or self.analysis.get("evidence_analysis", [])
@@ -153,13 +153,13 @@ class ReportGeneratorService:
                 continue
             severity, icon = "medium", "🔍"
             lower = clean_ev.lower()
-            if any(kw in lower for kw in ("critical", "惡意", "threat", "danger")):
+            if any(kw in lower for kw in ("critical", "malicious", "threat", "danger")):
                 severity, icon = "high", "🚨"
-            elif any(kw in lower for kw in ("suspicious", "可疑", "warning")):
+            elif any(kw in lower for kw in ("suspicious", "warning")):
                 icon = "⚠️"
-            elif any(kw in lower for kw in ("tld", "尾巴", "cfd", "xyz")):
+            elif any(kw in lower for kw in ("tld", "ending", "cfd", "xyz")):
                 icon = "🌐"
-            elif any(kw in lower for kw in ("brand", "品牌", "paypal", "allegro")):
+            elif any(kw in lower for kw in ("brand", "paypal", "allegro")):
                 icon = "🏷️"
             cards.append({
                 "id": f"evidence_{i + 1}", "icon": icon,
@@ -169,8 +169,8 @@ class ReportGeneratorService:
             })
         if not cards:
             cards.append({
-                "id": "evidence_default", "icon": "💡", "title": "小提醒",
-                "content": "這個網址沒有明顯危險信號，但上網時還是要保持警覺喔！",
+                "id": "evidence_default", "icon": "💡", "title": "Reminder",
+                "content": "No obvious danger signs for this URL, but always stay alert online!",
                 "severity": "low", "expandable": False,
             })
         return cards
@@ -178,9 +178,9 @@ class ReportGeneratorService:
     @staticmethod
     def _extract_evidence_title(text: str) -> str:
         patterns: list[tuple[str, str]] = [
-            (r"威脅類型[:：]", "🚨 偵測到威脅"), (r"分類[:：]", "🏷️ 分類標籤"),
-            (r"惡意[:：]?\s*\d+", "🔴 惡意偵測"), (r"品牌", "🏷️ 品牌相似度"),
-            (r"域名.*?複雜", "🔤 域名結構"),
+            (r"[Tt]hreat\s*type[:：]", "🚨 Threat Detected"), (r"[Cc]ategor(y|ies)[:：]", "🏷️ Category Tags"),
+            (r"[Mm]alicious[:：]?\s*\d+", "🔴 Malicious Detection"), (r"[Bb]rand", "🏷️ Brand Similarity"),
+            (r"[Dd]omain.*?complex", "🔤 Domain Structure"),
         ]
         for pattern, title in patterns:
             if re.search(pattern, text, re.I):
@@ -197,23 +197,23 @@ class ReportGeneratorService:
                 "tld": self.target_tld,
                 "is_common": self.target_tld.lower() in COMMON_TLDS,
                 "is_high_risk": is_high_risk,
-                "kid_message": f"網址的尾巴 `.{self.target_tld}` "
-                               + ("很少見，要特別小心" if is_high_risk else "是常見的，比較放心"),
+                "kid_message": f"The domain ending `.{self.target_tld}` "
+                               + ("is uncommon — be extra careful" if is_high_risk else "is common — that's reassuring"),
             },
             "domain_structure": {
                 "length": domain_len, "has_numbers": has_numbers, "has_hyphens": has_hyphens,
                 "kid_message": (
-                    f"域名{'長長又複雜' if domain_len > SUSPICIOUS_DOMAIN_LENGTH or has_numbers or has_hyphens else '簡單好記'}，"
-                    + ("正規網站通常簡單喔" if domain_len > SUSPICIOUS_DOMAIN_LENGTH else "")
+                    f"The domain is {'long and complex' if domain_len > SUSPICIOUS_DOMAIN_LENGTH or has_numbers or has_hyphens else 'short and easy to remember'}"
+                    + (" — legitimate sites are usually simple" if domain_len > SUSPICIOUS_DOMAIN_LENGTH else "")
                 ),
             },
             "visual_summary": {
                 "url_parts": [
-                    {"part": "https://", "label": "協定", "safe": True},
-                    {"part": self.target_domain, "label": "域名",
+                    {"part": "https://", "label": "Protocol", "safe": True},
+                    {"part": self.target_domain, "label": "Domain",
                      "safe": not (is_high_risk or domain_len > SUSPICIOUS_DOMAIN_LENGTH)},
                     {"part": "/" + self.target_url.split(self.target_domain)[-1]
-                     if "/" in self.target_url else "", "label": "路徑", "safe": True},
+                     if "/" in self.target_url else "", "label": "Path", "safe": True},
                 ],
             },
         }
@@ -231,18 +231,18 @@ class ReportGeneratorService:
         recommendations = self.analysis.get("recommendations", [])
         if self.risk_source == "content":
             templates = [
-                {"icon": "🚫", "tip": "不點開奇怪的連結", "why": "可能連到不適合小朋友的網站"},
-                {"icon": "👀", "tip": "看到不舒服的內容要馬上關掉", "why": "保護自己的眼睛和心情"},
-                {"icon": "👨‍👩‍👧", "tip": "遇到不清楚的網站告訴爸媽或老師", "why": "大人可以幫你判斷"},
-                {"icon": "📱", "tip": "用網路時保持警覺", "why": "不是所有網站都適合小朋友"},
+                {"icon": "🚫", "tip": "Don't open suspicious links", "why": "They might lead to sites not suitable for kids"},
+                {"icon": "👀", "tip": "Close the page immediately if something feels wrong", "why": "Protect your eyes and your mood"},
+                {"icon": "👨‍👩‍👧", "tip": "Tell a parent or teacher about unfamiliar sites", "why": "Adults can help you decide"},
+                {"icon": "📱", "tip": "Stay alert when browsing", "why": "Not all websites are suitable for kids"},
             ]
         else:
             templates = [
-                {"icon": "🔍", "tip": "不隨便點陌生連結", "why": "陌生連結可能帶你到騙人的網站"},
-                {"icon": "🔐", "tip": "不在不明網站輸入密碼", "why": "騙人的網站會偷走你的帳號"},
-                {"icon": "👨‍👩‍👧", "tip": "有疑問時問爸媽或老師", "why": "大人經驗多，可以幫你判斷"},
-                {"icon": "🔖", "tip": "把常用網站加入書籤", "why": "避免打錯網址跑到假網站"},
-                {"icon": "🔄", "tip": "定期更新密碼", "why": "不同網站用不同密碼更安全"},
+                {"icon": "🔍", "tip": "Don't click unfamiliar links", "why": "Unknown links may lead to scam sites"},
+                {"icon": "🔐", "tip": "Never enter passwords on unknown sites", "why": "Scam sites can steal your account"},
+                {"icon": "👨‍👩‍👧", "tip": "Ask a parent or teacher when in doubt", "why": "Adults have more experience and can help"},
+                {"icon": "🔖", "tip": "Bookmark your favorite sites", "why": "Avoid typos that lead to fake sites"},
+                {"icon": "🔄", "tip": "Update your passwords regularly", "why": "Use different passwords for different sites"},
             ]
         tips: list[dict[str, Any]] = []
         for i, rec in enumerate(recommendations[:3]):
@@ -250,26 +250,26 @@ class ReportGeneratorService:
             if clean:
                 t = templates[i % len(templates)]
                 tips.append({"id": f"tip_{i + 1}", "icon": t["icon"],
-                             "tip": simplify_text(clean, 60), "why": t["why"], "action_text": "記住囉！"})
+                             "tip": simplify_text(clean, 60), "why": t["why"], "action_text": "Got it!"})
         while len(tips) < 4:
             t = templates[len(tips) % len(templates)]
             tips.append({"id": f"tip_{len(tips) + 1}", "icon": t["icon"],
-                         "tip": t["tip"], "why": t["why"], "action_text": "記住囉！"})
+                         "tip": t["tip"], "why": t["why"], "action_text": "Got it!"})
         return tips
 
     def _generate_next_steps(self) -> list[dict[str, Any]]:
         risk = self.analysis.get("risk_level", "inconclusive")
         if risk in ("critical", "high"):
             return [
-                {"action": "❌ 不要點擊此連結", "priority": "high", "icon": "🚫"},
-                {"action": "🔍 用 VirusTotal 再檢查一次", "priority": "medium", "icon": "🔎", "link": "https://www.virustotal.com"},
-                {"action": "👨‍👩‍👧 問爸媽或老師", "priority": "high", "icon": "🗣️"},
-                {"action": "🌐 直接輸入官方網址訪問", "priority": "medium", "icon": "✅"},
+                {"action": "❌ Do NOT click this link", "priority": "high", "icon": "🚫"},
+                {"action": "🔍 Double-check with VirusTotal", "priority": "medium", "icon": "🔎", "link": "https://www.virustotal.com"},
+                {"action": "👨‍👩‍👧 Ask a parent or teacher", "priority": "high", "icon": "🗣️"},
+                {"action": "🌐 Visit the official site directly", "priority": "medium", "icon": "✅"},
             ]
         return [
-            {"action": "🔍 保持警覺，仔細看網址", "priority": "medium", "icon": "👀"},
-            {"action": "🔐 不要在不明網站輸入個資", "priority": "high", "icon": "🔒"},
-            {"action": "📚 學習更多網路安全知識", "priority": "low", "icon": "🎓", "link": "https://phishingquiz.withgoogle.com"},
+            {"action": "🔍 Stay alert and inspect the URL carefully", "priority": "medium", "icon": "👀"},
+            {"action": "🔐 Don't enter personal info on unknown sites", "priority": "high", "icon": "🔒"},
+            {"action": "📚 Learn more about internet safety", "priority": "low", "icon": "🎓", "link": "https://phishingquiz.withgoogle.com"},
         ]
 
     # ── Public entry ──

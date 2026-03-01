@@ -41,7 +41,7 @@ class ContentCheckerService:
     async def fetch_content(self, target_url: str) -> tuple[str | None, str | None]:
         """Fetch page content via Exa /contents, with cache + search fallback."""
         if not self._s.exa_api_key:
-            return None, "EXA_API_KEY 未設定"
+            return None, "EXA_API_KEY not configured"
 
         content, err, tag = await self._exa_contents(target_url)
         if content:
@@ -58,7 +58,7 @@ class ContentCheckerService:
                 return content, None
             return None, search_err or err
 
-        return None, err or "Exa 爬取失敗"
+        return None, err or "Exa crawl failed"
 
     async def _exa_contents(
         self,
@@ -92,8 +92,8 @@ class ContentCheckerService:
         for s in data.get("statuses", []):
             if s.get("status") == "error":
                 tag = s.get("error", {}).get("tag", "unknown")
-                return None, f"Exa 爬取失敗: {tag}", tag
-        return None, "Exa 未回傳任何內容", None
+                return None, f"Exa crawl failed: {tag}", tag
+        return None, "Exa returned no content", None
 
     async def _exa_search(
         self, target_url: str, num_results: int | None = None,
@@ -117,16 +117,16 @@ class ContentCheckerService:
                 data = resp.json()
             results = data.get("results", [])
             if not results:
-                return None, "Exa 搜尋無結果"
+                return None, "Exa search returned no results"
             parts: list[str] = []
             for r in results:
                 if r.get("text"):
                     parts.append(r["text"])
                 if r.get("summary"):
-                    parts.append(f"[摘要] {r['summary']}")
+                    parts.append(f"[Summary] {r['summary']}")
             return "\n\n".join(parts).strip() or None, None
         except Exception as exc:
-            return None, f"Exa 搜尋請求失敗: {exc}"
+            return None, f"Exa search request failed: {exc}"
 
     @staticmethod
     def _merge_results(results: list[dict[str, Any]]) -> str:
@@ -149,24 +149,24 @@ class ContentCheckerService:
     ) -> dict[str, Any]:
         """Classify whether the page is suitable for children (<18)."""
         max_chars = self._s.content_max_chars
-        truncated = page_content[:max_chars] + "\n\n[... 內容已截斷 ...]" if len(page_content) > max_chars else page_content
+        truncated = page_content[:max_chars] + "\n\n[... content truncated ...]" if len(page_content) > max_chars else page_content
 
-        system_prompt = """你是一位關心兒童網路安全的專家。請根據提供的網頁 URL 與內容，判斷這個網頁**是否適合 18 歲以下兒童**瀏覽。
+        system_prompt = """You are a child internet safety expert. Based on the provided URL and page content, determine whether this webpage is **suitable for children under 18**.
 
-重點檢查：色情、成人內容、極端暴力、血腥、恐怖等不適當內容。
+Focus on: pornography, adult content, extreme violence, gore, horror, and other inappropriate material.
 
-請輸出結構化 JSON：
+Output structured JSON:
 {
-  "labels": ["標籤1", "標籤2"],
-  "primary_label": "主要標籤",
+  "labels": ["label1", "label2"],
+  "primary_label": "main label",
   "confidence": "high/medium/low",
-  "explanation": "簡短說明（50字內）",
-  "is_unsuitable_for_children": true 或 false
+  "explanation": "brief explanation (under 50 words)",
+  "is_unsuitable_for_children": true or false
 }
 
-若內容涉及色情、成人、暴力、血腥等，is_unsuitable_for_children 必須為 true。"""
+If the content involves pornography, adult material, violence, gore, etc., is_unsuitable_for_children MUST be true."""
 
-        user_content = f"請分析以下網頁是否適合兒童：\n\nURL: {target_url}\n\n網頁內容：\n---\n{truncated}\n---\n\n輸出 JSON。"
+        user_content = f"Analyze whether the following webpage is suitable for children:\n\nURL: {target_url}\n\nPage content:\n---\n{truncated}\n---\n\nOutput JSON."
 
         try:
             resp = await self._openai.chat.completions.create(
@@ -187,4 +187,4 @@ class ContentCheckerService:
             return classification
         except Exception as exc:
             logger.error("Content classification failed: %s", exc)
-            return {"labels": [], "primary_label": "不明", "is_unsuitable_for_children": False, "error": str(exc)}
+            return {"labels": [], "primary_label": "unknown", "is_unsuitable_for_children": False, "error": str(exc)}

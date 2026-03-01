@@ -14,107 +14,107 @@ from config import Settings
 
 logger = logging.getLogger(__name__)
 
-# ── Phishing / Security prompt (兒童輔導員) ──
+# ── Phishing / Security prompt (child counselor) ──
 
 PHISHING_SYSTEM_PROMPT = """\
-你是一位關心 18 歲以下兒童網路安全的輔導員，用親切、易懂的方式幫助孩子理解網路風險。
+You are a friendly internet safety counselor for children under 18. Explain online risks in a warm, easy-to-understand manner that kids can follow.
 
-請基於提供的威脅情報平台檢測結果，分析目標網址的風險。用「小朋友聽得懂」的語言解釋，避免太多專業術語。
+Based on the threat intelligence platform detection results provided, analyze the risk of the target URL. Use simple, kid-friendly language and avoid excessive technical jargon.
 
-輸出要求：
-1. 使用結構化 JSON 格式
-2. 用簡單的話解釋為什麼這個網址有危險
-3. 提供具體、實用的建議（適合兒童與家長）
-4. 如果證據不足，請明確說明不確定性
-5. **釣魚網站專屬**：
-   - 根據釣魚網址的樣貌，推測 2～4 個「使用者可能想去的正確/官方網址」。例如：paypa1.com → paypal.com；allegrolokalnie.pl-xxx.cfd → allegrolokalnie.pl。填入 likely_intended_urls 陣列。
-   - 再根據推測的網站類型（購物、金融、社群等），推薦 2～4 個「同類型、可替代的合法網站」。例如：若仿冒 allegrolokalnie（購物），可推薦蝦皮、Amazon、PChome 等；若仿冒 PayPal，可推薦其他正規支付平台。填入 alternative_recommendations 陣列。
+Output requirements:
+1. Use structured JSON format
+2. Explain in simple terms why this URL is dangerous
+3. Provide concrete, practical advice (suitable for children and parents)
+4. If evidence is insufficient, clearly state the uncertainties
+5. **Phishing-specific**:
+   - Based on the phishing URL's appearance, infer 2-4 "correct/official URLs the user likely intended to visit". E.g.: paypa1.com -> paypal.com; allegrolokalnie.pl-xxx.cfd -> allegrolokalnie.pl. Put them in the likely_intended_urls array.
+   - Based on the inferred site type (shopping, finance, social media, etc.), recommend 2-4 "legitimate alternatives of the same type". E.g.: if impersonating allegrolokalnie (shopping), recommend Shopee, Amazon, PChome, etc.; if impersonating PayPal, recommend other legitimate payment platforms. Put them in the alternative_recommendations array.
 
-JSON 欄位：
+JSON fields:
 {
   "risk_level": "critical/high/medium/low/inconclusive",
   "confidence": "high/medium/low",
   "risk_score": 0-100,
-  "threat_summary": "一句話總結主要威脅",
-  "likely_intended_urls": ["網址1", "網址2", ...],
-  "intended_url_reason": "簡短說明為何推斷為這些網址（50字內）",
+  "threat_summary": "one-sentence summary of the main threat",
+  "likely_intended_urls": ["url1", "url2", ...],
+  "intended_url_reason": "brief explanation of why these URLs were inferred (under 50 words)",
   "alternative_recommendations": [
-    {"name": "蝦皮購物", "url": "https://shopee.tw"},
+    {"name": "Shopee", "url": "https://shopee.tw"},
     {"name": "Amazon", "url": "https://www.amazon.com"}
   ],
-  "evidence_analysis": ["證據1", "證據2", ...],
-  "why_unsafe": "詳細解釋為什麼不安全（200-300字）",
+  "evidence_analysis": ["evidence1", "evidence2", ...],
+  "why_unsafe": "detailed explanation of why it is unsafe (200-300 words)",
   "technical_details": {
-    "detected_by": ["平台1", "平台2"],
-    "threat_types": ["類型1", "類型2"],
-    "indicators": ["指標1", "指標2"]
+    "detected_by": ["platform1", "platform2"],
+    "threat_types": ["type1", "type2"],
+    "indicators": ["indicator1", "indicator2"]
   },
-  "user_warnings": ["警告1", "警告2", ...],
-  "recommendations": ["建議1", "建議2", ...],
-  "uncertainties": ["不確定因素1", ...]
+  "user_warnings": ["warning1", "warning2", ...],
+  "recommendations": ["recommendation1", "recommendation2", ...],
+  "uncertainties": ["uncertainty1", ...]
 }
 
-🎮 **互動教學任務（JSON 輸出）**：
-請額外生成一個「創意選擇題」，幫助小朋友學習辨識危險網址或不良內容。
-要求：
-1. 題目要有趣、不寫死格式（情境題、找不同、排序題等）
-2. 提供 4 個選項（A/B/C/D）
-3. 標明正確答案
-4. 每個選項都要有「為什麼對/錯」的簡單解釋（小朋友聽得懂的語言）
-5. 可選：加一個小提示（hint）增加趣味性
+🎮 **Interactive Learning Task (JSON output)**:
+Also generate a creative multiple-choice quiz to help kids learn to identify dangerous URLs or harmful content.
+Requirements:
+1. The question should be fun and varied (scenario-based, spot-the-difference, ordering, etc.)
+2. Provide 4 options (A/B/C/D)
+3. Mark the correct answer
+4. Each option should have a simple explanation of why it is right/wrong (in kid-friendly language)
+5. Optional: add a hint for extra fun
 
-請將題目放在 JSON 的 "quiz" 欄位，格式如下：
+Place the quiz in the "quiz" field of the JSON, formatted as:
 {
   "quiz": {
-    "question": "你的創意題目",
-    "hint": "可選的小提示",
+    "question": "your creative question",
+    "hint": "optional hint",
     "type": "single_choice",
     "options": [
-      {"id": "A", "text": "選項 A 文字"},
-      {"id": "B", "text": "選項 B 文字"},
-      {"id": "C", "text": "選項 C 文字"},
-      {"id": "D", "text": "選項 D 文字"}
+      {"id": "A", "text": "option A text"},
+      {"id": "B", "text": "option B text"},
+      {"id": "C", "text": "option C text"},
+      {"id": "D", "text": "option D text"}
     ],
     "correct_answer": "C",
     "explanations": {
-      "A": "為什麼 A 不對的解釋",
-      "B": "為什麼 B 不對的解釋",
-      "C": "為什麼 C 對的解釋",
-      "D": "為什麼 D 不對的解釋"
+      "A": "why A is wrong",
+      "B": "why B is wrong",
+      "C": "why C is correct",
+      "D": "why D is wrong"
     },
-    "learning_point": "本題想教會讀者什麼",
+    "learning_point": "what this question teaches the reader",
     "difficulty": "easy"
   }
 }
 """
 
-# ── Content risk prompt (內容適齡) ──
+# ── Content risk prompt (age-appropriateness) ──
 
 CONTENT_RISK_SYSTEM_PROMPT = """\
-你是一位關心 18 歲以下兒童網路安全的輔導員。這次要分析的是「不適合兒童的網頁內容」（如色情、暴力、血腥等），而非釣魚詐騙。
+You are a friendly internet safety counselor for children under 18. This time, analyze "web content unsuitable for children" (e.g., pornography, violence, gore), NOT phishing scams.
 
-請用親切、易懂的方式，幫助孩子理解為什麼某些網站不適合他們瀏覽，以及如何保護自己。避免嚇唬，用正面、教育的口吻。
+Use a warm, easy-to-understand tone to help kids understand why certain websites are not appropriate for them and how to protect themselves. Avoid scare tactics; use a positive, educational voice.
 
-輸出 JSON 格式（與資安分析相同結構）：
+Output JSON format (same structure as security analysis):
 {
   "risk_level": "high",
   "confidence": "high/medium/low",
   "risk_score": 70-100,
-  "threat_summary": "一句話總結（例如：此網頁包含不適合兒童的內容）",
-  "evidence_analysis": ["內容證據1", "內容證據2", ...],
-  "why_unsafe": "詳細解釋為什麼不適合兒童（200-300字，用小朋友聽得懂的語言）",
+  "threat_summary": "one-sentence summary (e.g., this page contains content unsuitable for children)",
+  "evidence_analysis": ["content evidence 1", "content evidence 2", ...],
+  "why_unsafe": "detailed explanation of why it is unsuitable for children (200-300 words, in kid-friendly language)",
   "technical_details": {
-    "detected_by": ["內容分析"],
-    "threat_types": ["色情", "暴力", ...],
+    "detected_by": ["content analysis"],
+    "threat_types": ["pornography", "violence", ...],
     "indicators": []
   },
-  "content_risk_type": "色情/暴力/其他不當內容",
-  "user_warnings": ["警告1", "警告2", ...],
-  "recommendations": ["建議1", "建議2", ...],
+  "content_risk_type": "pornography/violence/other inappropriate content",
+  "user_warnings": ["warning1", "warning2", ...],
+  "recommendations": ["recommendation1", "recommendation2", ...],
   "uncertainties": []
 }
 
-並生成創意選擇題（quiz 欄位），幫助小朋友學習「如何分辨不適當的網站」或「遇到不當內容該怎麼辦」。格式與資安分析相同。"""
+Also generate a creative multiple-choice quiz (quiz field) to help kids learn "how to identify inappropriate websites" or "what to do when encountering inappropriate content". Use the same format as the security analysis quiz."""
 
 
 class ThreatAnalysisService:
@@ -142,79 +142,79 @@ class ThreatAnalysisService:
                 continue
             src = r["source"]
             if r.get("threat_type"):
-                evidence_items.append(f"• [{src}] 威脅類型: {r['threat_type']}")
+                evidence_items.append(f"• [{src}] Threat type: {r['threat_type']}")
             cats = r.get("categories")
             if cats:
                 if isinstance(cats, list):
-                    evidence_items.append(f"• [{src}] 分類: {', '.join(cats[:3])}")
+                    evidence_items.append(f"• [{src}] Categories: {', '.join(cats[:3])}")
                 elif isinstance(cats, dict):
-                    evidence_items.append(f"• [{src}] 分類: {', '.join(list(cats.keys())[:3])}")
+                    evidence_items.append(f"• [{src}] Categories: {', '.join(list(cats.keys())[:3])}")
             stats = r.get("stats")
             if stats and isinstance(stats, dict):
                 mal, sus = stats.get("malicious", 0), stats.get("suspicious", 0)
                 if mal or sus:
-                    evidence_items.append(f"• [{src}] 惡意:{mal} 可疑:{sus}")
+                    evidence_items.append(f"• [{src}] Malicious:{mal} Suspicious:{sus}")
             tags = r.get("tags")
             if tags:
                 tag_list = tags if isinstance(tags, list) else [str(tags)]
-                evidence_items.append(f"• [{src}] 標籤: {', '.join(tag_list[:3])}")
+                evidence_items.append(f"• [{src}] Tags: {', '.join(tag_list[:3])}")
 
         crit_text = "\n".join(
-            f"- {f['source']}: {f.get('threat_type') or '未知威脅'}" for f in critical_flags
-        ) or "無重大警告"
+            f"- {f['source']}: {f.get('threat_type') or 'unknown threat'}" for f in critical_flags
+        ) or "No critical alerts"
         warn_text = "\n".join(
-            f"- {w['source']}: {str(w.get('reason', '未知原因'))[:100]}" for w in warnings
-        ) or "無次要警告"
-        evidence_text = "\n".join(evidence_items) or "• 未偵測到具體威脅指標"
+            f"- {w['source']}: {str(w.get('reason', 'unknown reason'))[:100]}" for w in warnings
+        ) or "No minor alerts"
+        evidence_text = "\n".join(evidence_items) or "• No specific threat indicators detected"
 
         return f"""\
-請分析以下網址的安全性：
+Analyze the safety of the following URL:
 
-🎯 目標網址: {target_url}
+🎯 Target URL: {target_url}
 
-📊 威脅情報平台檢測結果:
-- 整體風險評估: {security_results.get('overall_risk', 'unknown')}
-- 信心程度: {security_results.get('confidence', 'unknown')}
-- 風險分數: {security_results.get('risk_score', 'N/A')}/100
-- 已檢查來源數: {security_results.get('checked_sources', 0)}
+📊 Threat intelligence platform detection results:
+- Overall risk assessment: {security_results.get('overall_risk', 'unknown')}
+- Confidence level: {security_results.get('confidence', 'unknown')}
+- Risk score: {security_results.get('risk_score', 'N/A')}/100
+- Sources checked: {security_results.get('checked_sources', 0)}
 
-🚨 關鍵警告 ({len(critical_flags)} 項):
+🚨 Critical alerts ({len(critical_flags)}):
 {crit_text}
 
-⚠️ 次要警告 ({len(warnings)} 項):
+⚠️ Minor alerts ({len(warnings)}):
 {warn_text}
 
-🔍 詳細證據:
+🔍 Detailed evidence:
 {evidence_text}
 
-請基於以上資訊，輸出結構化的 JSON 分析結果。
-若判定為釣魚網站，請務必填寫 likely_intended_urls、intended_url_reason 與 alternative_recommendations。"""
+Based on the above information, output a structured JSON analysis result.
+If determined to be a phishing site, make sure to fill in likely_intended_urls, intended_url_reason, and alternative_recommendations."""
 
     @staticmethod
     def _build_content_risk_user_prompt(
         target_url: str, page_content: str, content_classification: dict[str, Any]
     ) -> str:
         labels = content_classification.get("labels", [])
-        primary = content_classification.get("primary_label", "不明")
+        primary = content_classification.get("primary_label", "unknown")
         explanation = content_classification.get("explanation", "")
         content_preview = (page_content[:2000] + "...") if len(page_content) > 2000 else page_content
 
         return f"""\
-請分析以下網頁的「內容適齡性」：
+Analyze the age-appropriateness of the following webpage:
 
 URL: {target_url}
 
-初步內容分類結果：
-- 主要標籤：{primary}
-- 標籤列表：{', '.join(labels)}
-- 說明：{explanation}
+Preliminary content classification:
+- Primary label: {primary}
+- Label list: {', '.join(labels)}
+- Explanation: {explanation}
 
-網頁內容摘要：
+Page content preview:
 ---
 {content_preview}
 ---
 
-請輸出結構化 JSON，包含 why_unsafe、recommendations、quiz 等，用兒童輔導員的語氣。"""
+Output structured JSON including why_unsafe, recommendations, quiz, etc., in a child counselor tone."""
 
     @staticmethod
     def _fallback_phishing(security_results: dict[str, Any]) -> dict[str, Any]:
@@ -224,50 +224,50 @@ URL: {target_url}
             "risk_level": risk,
             "confidence": "low",
             "risk_score": security_results.get("risk_score", 50),
-            "threat_summary": "無法進行深度分析，請參考原始檢測結果",
+            "threat_summary": "Deep analysis unavailable — refer to the raw detection results",
             "likely_intended_urls": [],
             "intended_url_reason": None,
             "alternative_recommendations": [],
             "evidence_analysis": [
-                f"• {c['source']}: {c.get('threat_type', '未知')}" for c in critical
+                f"• {c['source']}: {c.get('threat_type', 'unknown')}" for c in critical
             ],
-            "why_unsafe": "分析服務暫時無法提供詳細說明。建議小朋友先不要點擊這個連結，可以請爸媽或老師幫忙用其他安全工具再檢查一次喔！",
+            "why_unsafe": "The analysis service is temporarily unable to provide a detailed explanation. We recommend not clicking this link for now — ask a parent or teacher to double-check it with another safety tool!",
             "technical_details": {
                 "detected_by": [c["source"] for c in critical],
                 "threat_types": [c.get("threat_type") for c in critical if c.get("threat_type")],
                 "indicators": [],
             },
-            "user_warnings": ["分析服務暫時不可用，請謹慎訪問此網址"],
+            "user_warnings": ["Analysis service temporarily unavailable — proceed with caution"],
             "recommendations": [
-                "避免在此網站輸入任何個人資訊",
-                "使用其他安全工具進行二次驗證",
-                "如已輸入敏感資料，立即更改密碼",
+                "Do not enter any personal information on this site",
+                "Use another safety tool to verify",
+                "If you already entered sensitive data, change your password immediately",
             ],
-            "uncertainties": ["LLM 分析服務呼叫失敗"],
+            "uncertainties": ["LLM analysis service call failed"],
             "fallback_mode": True,
         }
 
     @staticmethod
     def _fallback_content_risk(content_classification: dict[str, Any]) -> dict[str, Any]:
-        primary = content_classification.get("primary_label", "不當內容")
+        primary = content_classification.get("primary_label", "inappropriate content")
         return {
             "risk_level": "high",
             "confidence": "medium",
             "risk_score": 80,
-            "threat_summary": f"此網頁可能包含不適合兒童的內容（{primary}）",
-            "evidence_analysis": [f"內容分類：{primary}"],
-            "why_unsafe": f"根據分析，這個網頁可能含有{primary}等內容，不適合 18 歲以下的兒童與青少年瀏覽。建議不要點擊，如有疑問可與家長或老師討論。",
+            "threat_summary": f"This page may contain content unsuitable for children ({primary})",
+            "evidence_analysis": [f"Content classification: {primary}"],
+            "why_unsafe": f"Based on our analysis, this page may contain {primary} material that is not appropriate for children under 18. We recommend not clicking it — talk to a parent or teacher if you have questions.",
             "technical_details": {
-                "detected_by": ["內容分析"],
+                "detected_by": ["content analysis"],
                 "threat_types": content_classification.get("labels", [primary]),
                 "indicators": [],
             },
             "content_risk_type": primary,
-            "user_warnings": ["此網站可能含有不適合兒童的內容"],
+            "user_warnings": ["This site may contain content unsuitable for children"],
             "recommendations": [
-                "不要點擊或瀏覽此連結",
-                "如不小心點進去，請立即關閉並告訴家長或老師",
-                "使用網路時保持警覺，遇到奇怪內容要及時求助",
+                "Do not click or browse this link",
+                "If you accidentally opened it, close it immediately and tell a parent or teacher",
+                "Stay alert online — ask for help when you see something strange",
             ],
             "uncertainties": [],
             "fallback_mode": True,
@@ -299,7 +299,7 @@ URL: {target_url}
             user_prompt=user_prompt,
             fallback_fn=lambda: self._fallback_content_risk(content_classification),
         )
-        result["content_risk_type"] = content_classification.get("primary_label", "不當內容")
+        result["content_risk_type"] = content_classification.get("primary_label", "inappropriate content")
         return result
 
     async def _call_llm(

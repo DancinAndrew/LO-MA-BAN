@@ -12,21 +12,21 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 # ── Module-level constants (not env-backed, but centralised) ──
 
 UNSUITABLE_LABELS: frozenset[str] = frozenset([
-    "色情", "成人", "暴力", "血腥", "gore", "porn", "nsfw", "explicit",
-    "裸露", "不雅", "極端暴力", "恐怖",
+    "pornography", "adult", "violence", "gore", "porn", "nsfw", "explicit",
+    "nudity", "obscene", "extreme violence", "horror",
 ])
 
 KID_FRIENDLY_REPLACEMENTS: dict[str, str] = {
-    "釣魚網站": "騙人的假網站",
-    "惡意軟體": "壞壞的程式",
-    "SSL 證書": "安全鎖",
-    "頂級域名": "網址的尾巴",
-    "個資": "個人資料",
-    "仿冒": "假裝成",
-    "威脅情報": "安全檢查",
-    "色情": "不適合小朋友看的內容",
-    "成人內容": "大人才能看的內容",
-    "暴力": "打打殺殺的畫面",
+    "phishing site": "a fake website pretending to be real",
+    "malware": "a harmful program",
+    "SSL certificate": "security lock",
+    "top-level domain": "the ending of a URL",
+    "personal data": "your private info",
+    "impersonation": "pretending to be someone else",
+    "threat intelligence": "safety check",
+    "pornography": "content not suitable for kids",
+    "adult content": "content meant only for adults",
+    "violence": "scenes of fighting and harm",
 }
 
 HIGH_RISK_TLDS: frozenset[str] = frozenset(
