@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from config import get_settings
+from dependencies import clear_cached_security_checker, init_cached_security_checker
 from schemas.responses import HealthResponse
 from routers.scan import router as scan_router
 from routers.persuade import router as persuade_router
@@ -44,7 +45,9 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     if errors:
         for e in errors:
             logging.getLogger(__name__).warning("Config warning: %s", e)
+    init_cached_security_checker(settings)
     yield
+    await clear_cached_security_checker()
 
 
 # ── App factory ──

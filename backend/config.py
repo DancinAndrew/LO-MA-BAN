@@ -76,6 +76,8 @@ class Settings(BaseSettings):
 
     # --- Security APIs ---
     api_timeout: int = 30
+    security_cache_ttl: int = 3600
+    security_cache_max_size: int = 1024
 
     virustotal_api_key: str = ""
     virustotal_base_url: str = "https://www.virustotal.com/api/v3"

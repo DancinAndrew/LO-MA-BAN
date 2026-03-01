@@ -3,23 +3,27 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timezone
-from typing import Any, Callable
+from typing import Any, Callable, Protocol
 
 from fastapi import HTTPException
 
 from schemas.responses import ScanResponse
 from services.content_checker import ContentCheckerService, is_unsuitable_for_children
 from services.report_generator import ReportGeneratorService
-from services.security_checker import SecurityCheckerService
 from services.threat_analysis import ThreatAnalysisService
 
 logger = logging.getLogger(__name__)
 
 
+class SecurityChecker(Protocol):
+    async def check_all(self, target_url: str) -> dict[str, Any]:
+        ...
+
+
 class ScanOrchestrator:
     def __init__(
         self,
-        security_checker: SecurityCheckerService,
+        security_checker: SecurityChecker,
         threat_analyzer: ThreatAnalysisService,
         content_checker: ContentCheckerService,
         report_generator_factory: Callable[..., ReportGeneratorService],
