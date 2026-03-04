@@ -39,6 +39,7 @@
 在專案根目錄執行：
 
 ```bash
+cp .env.example .env   # 依需求設定 VITE_SCOUTNET_API_URL 等
 pnpm install
 pnpm dev
 ```

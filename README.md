@@ -224,7 +224,8 @@ uv run python main.py
 
 **2. Frontend Setup**
 ```bash
-# In a new terminal
+# In a new terminal (project root)
+cp .env.example .env   # Configure VITE_SCOUTNET_API_URL etc.
 pnpm install
 pnpm dev
 ```
